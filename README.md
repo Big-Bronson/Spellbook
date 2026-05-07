@@ -1,0 +1,192 @@
+# Steve's Scriptorium
+
+> M365 helpdesk toolkit for user lifecycle, tenant auditing, mailbox management, MFA, and Exchange.  
+> Built for MSP engineers. No fluff, no GUIs — just fast CLI commands that get the job done.
+
+---
+
+## Install
+
+### From PowerShell Gallery (recommended)
+
+```powershell
+Install-Module StevesScriptorium -Scope CurrentUser
+```
+
+Import it in your session (or add to your `$PROFILE` to auto-load):
+
+```powershell
+Import-Module StevesScriptorium
+```
+
+### From GitHub (clone and install)
+
+```powershell
+git clone https://github.com/Big-Bronson/StevesScriptorium.git
+cd StevesScriptorium
+.\Install.ps1
+```
+
+`Install.ps1` handles dependencies, copies the module to your PS module path, and adds the import to your profile automatically.
+
+---
+
+## Usage
+
+```powershell
+toolkit                   # list all commands
+toolkit new-user          # run a command by name
+toolkit 3                 # run a command by number
+```
+
+---
+
+## Commands
+
+### User Lifecycle
+
+| Command | Description |
+|---|---|
+| `toolkit new-user` | Create a new M365 user and assign groups |
+| `toolkit offboard-user` | Full offboarding — block, wipe, convert mailbox, export log |
+| `toolkit reset-password` | Reset a Microsoft 365 account password |
+| `toolkit set-userlicence` | Assign or remove a licence from a user |
+
+### User Reports & Auditing
+
+| Command | Description |
+|---|---|
+| `toolkit get-userreport` | Full profile dump for a single user |
+| `toolkit get-allusers` | All users with licences and last login |
+| `toolkit get-inactiveusers` | Users with no recent mailbox activity |
+| `toolkit get-mfaaudit` | All users and their MFA registration status |
+| `toolkit get-guestaudit` | Guest accounts with invite status and age |
+| `toolkit get-signinlogs` | Recent sign-in events for a user |
+
+### Tenant Health
+
+| Command | Description |
+|---|---|
+| `toolkit get-tenantreport` | Full tenant snapshot — licences, MFA gaps, admin roles, sync status, service health |
+
+### Mailbox & Exchange
+
+| Command | Description |
+|---|---|
+| `toolkit get-userperms` | List all mailboxes a user has access to |
+| `toolkit get-mailboxperms` | List who has access to a specific mailbox |
+| `toolkit add-mailboxperms` | Grant Full Access and Send As |
+| `toolkit set-forwarding` | Enable email forwarding from a mailbox |
+| `toolkit remove-forwarding` | Remove email forwarding |
+| `toolkit get-archive` | Check archive size and quota |
+| `toolkit enable-autoexpand` | Enable auto-expanding archive |
+| `toolkit disable-autocalevents` | Disable automatic calendar events tenant-wide |
+| `toolkit check-mailflow` | Trace message delivery for a sender/recipient pair |
+| `toolkit get-sharedmailboxaudit` | Shared mailboxes with delegates, size, licence status |
+
+### Groups
+
+| Command | Description |
+|---|---|
+| `toolkit get-groupmembers` | List all members of a group with CSV export |
+
+### MFA & Auth
+
+| Command | Description |
+|---|---|
+| `toolkit get-smsmfa` | Check SMS MFA number on an account |
+| `toolkit set-smsmfa` | Update existing SMS MFA number |
+| `toolkit add-smsmfa` | Add SMS MFA number to an account |
+| `toolkit add-tap` | Create a Temporary Access Pass |
+| `toolkit remove-taps` | Remove all Temporary Access Passes from a user |
+
+### System
+
+| Command | Description |
+|---|---|
+| `toolkit inherit-permissions` | Reset folder permissions to inherited |
+| `toolkit kill-graph` | Disconnect from Microsoft Graph |
+
+---
+
+## Requirements
+
+- PowerShell 5.1 or higher (7.x recommended)
+- Modules installed automatically by `Install.ps1` or when using PS Gallery:
+  - `ExchangeOnlineManagement`
+  - `Microsoft.Graph.Users`
+  - `Microsoft.Graph.Identity.SignIns`
+  - `Microsoft.Graph.Authentication`
+  - `Microsoft.Graph.Groups`
+  - `Microsoft.Graph.Reports`
+
+> No local admin required. All modules install to `CurrentUser` scope.
+
+---
+
+## Permissions
+
+Each script connects itself and prompts for auth. The Graph scopes required vary by command — each script requests only what it needs. A summary:
+
+| Scope | Used by |
+|---|---|
+| `User.ReadWrite.All` | new-user, offboard-user, reset-password, set-userlicence |
+| `User.Read.All` | get-allusers, get-userreport, get-mfaaudit, get-tenantreport |
+| `Directory.ReadWrite.All` | offboard-user, new-user |
+| `Directory.Read.All` | get-tenantreport, get-userreport, get-guestaudit |
+| `UserAuthenticationMethod.ReadWrite.All` | add/set/get-smsmfa, add-tap, remove-taps |
+| `UserAuthenticationMethod.Read.All` | get-mfaaudit, get-userreport |
+| `AuditLog.Read.All` | get-signinlogs |
+| `ServiceHealth.Read.All` | get-tenantreport |
+| `RoleManagement.ReadWrite.Directory` | offboard-user |
+| Exchange Online | all mailbox/Exchange commands |
+
+---
+
+## Repo Structure
+
+```
+StevesScriptorium/
+├── StevesScriptorium.psm1   # Module root — loads all scripts, exposes toolkit()
+├── StevesScriptorium.psd1   # Module manifest — version, dependencies, PS Gallery metadata
+├── Install.ps1              # Bootstrap installer (clone → run this)
+├── Publish.ps1              # PS Gallery publisher
+├── Public/                  # All user-facing scripts (one per command)
+├── Private/                 # Internal helpers (not exported)
+├── Templates/               # CSV templates for bulk operations
+├── docs/                    # Extended documentation
+└── README.md
+```
+
+---
+
+## Publishing a New Version
+
+1. Update `ModuleVersion` in `StevesScriptorium.psd1`
+2. Update `ReleaseNotes` in the manifest
+3. Commit and push to GitHub
+4. Run:
+
+```powershell
+.\Publish.ps1 -ApiKey "your-ps-gallery-api-key"
+```
+
+Use `-WhatIf` for a dry run before publishing.
+
+---
+
+## Contributing
+
+Adding a new command:
+
+1. Create `Public/your-command-name.ps1`
+2. Add the entry to the `$commands` ordered hashtable in `StevesScriptorium.psm1`
+3. Add it to `FunctionsToExport` in `StevesScriptorium.psd1`
+4. Add a row to the README command table
+5. Bump the module version
+
+---
+
+## Licence
+
+MIT — use it, fork it, share it with your team.
