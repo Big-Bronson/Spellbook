@@ -16,7 +16,13 @@ jobs:
         run: |
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Install-Module -Name Pester -MinimumVersion 5.0 -Force -Scope CurrentUser -SkipPublisherCheck
-
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          Install-Module ExchangeOnlineManagement `
+          -Scope CurrentUser `
+          -Force `
+          -SkipPublisherCheck
       - name: Run Pester tests
         shell: pwsh
         run: |
