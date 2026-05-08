@@ -112,7 +112,6 @@ Tracked in the issue tracker; not yet shipped:
 
 - User Lifecycle: `reset-password`
 - Mailbox & Exchange: `get-userperms`, `get-mailboxperms`, `add-mailboxperms`, `get-archive`, `enable-autoexpand`, `disable-autocalevents`
-- Mailbox & Exchange: `get-archive`, `enable-autoexpand`, `disable-autocalevents`
 - MFA & Auth: `get-smsmfa`, `set-smsmfa`, `add-smsmfa`, `add-tap`, `remove-taps`
 - System: `inherit-permissions`
 
