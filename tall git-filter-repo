@@ -1,0 +1,245 @@
+[33mcommit b14d436fbf7ed5fd1ca205b38336a3ec81417f40[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: Big-Bronson <email@stephenvella.work>
+
+    Fix GitHub Actions module dependencies
+
+[33mcommit ed079321238126b471472f3c985f05223a6bb2b2[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: GitHub <noreply@github.com>
+
+    Add Pester smoke tests + GitHub Actions verify workflow (#2)
+    
+    The cross-checks Publish.ps1 runs at publish time are exactly the kind of
+    thing a CI pipeline should run on every push. Move them out of the
+    publisher and into a Pester suite so manifest drift is caught when it
+    happens, not when someone tries to ship.
+    
+    tests/Module.Tests.ps1:
+      - Manifest validates and has a version
+      - ProjectUri / LicenseUri point at the real repo (regressions on this
+        were the headline bug in 1.0.0)
+      - FunctionsToExport and Public/*.ps1 are in sync both ways
+      - Every Public/*.ps1 parses without errors (parametric, one test per
+        script, file list resolved at discovery time so -ForEach expands)
+      - CHANGELOG has [Unreleased] and a dated section matching the manifest
+        version
+    
+    .github/workflows/verify.yml:
+      - Runs on push to main and on every PR
+      - Two jobs: Pester tests, and PSScriptAnalyzer
+      - Analyzer errors fail the build; warnings are reported but advisory
+        (the existing scripts use Write-Host etc. intentionally for CLI use)
+    
+    Local run: 22/22 passing on this branch. Note: an "exit vs return"
+    assertion would belong here too, but main currently has 8 sites still
+    using exit; that test ships with the fix/script-portability branch.
+    
+    Merge-order note: this branch is independent of fix/script-portability
+    and feat/judgment-commands. CI may report drift on whichever lands
+    second if the [Unreleased] CHANGELOG conflicts; trivial to resolve.
+
+[33mcommit 2e46cd1b5f91b29b9970b4490a7450564d88b3a0[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: GitHub <noreply@github.com>
+
+    feat: add kill-graph; add Pester smoke tests (#5)
+    
+    - Public/kill-graph.ps1: one-liner Disconnect-MgGraph
+    - tests/Module.Tests.ps1: Pester smoke tests (manifest sync, parse, CHANGELOG)
+    - toolkit menu: new System section
+    - FunctionsToExport: kill-graph added
+    
+    Co-authored-by: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+[33mcommit 9b86bc0556793724c37833ec141be421317d2f5d[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: GitHub <noreply@github.com>
+
+    feat: add set-forwarding and remove-forwarding (#7)
+    
+    Both scripts verify the source mailbox exists before applying; set-forwarding
+    also confirms the destination resolves in Exchange. Prompts for keep-copy
+    preference before setting DeliverToMailboxAndForward.
+    
+    Co-authored-by: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+[33mcommit 47c48fd7db5e46ca3dd45f6f9f2787397990214b[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: GitHub <noreply@github.com>
+
+    feat: add mailbox permissions family (get-mailboxperms, get-userperms, add-mailboxperms) (#4)
+    
+    - get-mailboxperms: shows FullAccess + SendAs delegates, filters NT AUTHORITY/S-1-5 noise
+    - get-userperms: iterates all mailboxes to find what a user has access to (warns on perf)
+    - add-mailboxperms: grants FullAccess (with auto-map prompt) and/or SendAs via
+      Add-MailboxPermission + Add-RecipientPermission
+    
+    Co-authored-by: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+[33mcommit 880f1fb210956357977181b1a1f0f6056b35fa17[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: GitHub <noreply@github.com>
+
+    Fix script portability and password handling (#3)
+    
+    Four issues surfaced in the v1.0.1 review that aren't user-facing in the
+    manifest sense but break behavior in real use:
+    
+    1. exit -> return. Public scripts are dot-sourced by toolkit(); 'exit'
+       terminated the user's PowerShell session instead of the script.
+       Replaced 8 sites across get-guestaudit, get-groupmembers, get-userreport,
+       set-userlicence, and offboard-user.
+    
+    2. offboard-user used [System.Web.Security.Membership]::GeneratePassword,
+       which isn't available on PowerShell 7 (System.Web is a Framework-only
+       assembly). Replaced with a portable generator built on
+       RandomNumberGenerator that guarantees one of each M365 complexity class
+       (upper, lower, digit, symbol) and shuffles via Fisher-Yates.
+    
+    3. offboard-user log claimed "New password logged in export" but the
+       generated password was never actually written to the CSV. The Notes
+       column now contains the password, matching the documented behavior.
+    
+    4. new-user accepted the initial password via plain Read-Host and echoed
+       it in the trailing summary, leaving it in scrollback. Now reads as
+       SecureString, converts to plain only at the New-MgUser call site, and
+       clears the local copy in a finally block. Summary line shows
+       "(set - not echoed)".
+    
+    CHANGELOG [Unreleased] updated. No version bump on this commit; will
+    roll into the next dated release.
+
+[33mcommit 529c6fd8cdbf280328cc96122f524e5a4300940f[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: GitHub <noreply@github.com>
+
+    feat: add MFA family (get/set/add-smsmfa, add-tap, remove-taps) (#8)
+    
+    - get-smsmfa: lists phone methods via Get-MgUserAuthenticationPhoneMethod
+    - set-smsmfa: updates phone number via Update-MgUserAuthenticationPhoneMethod
+    - add-smsmfa: registers new method (mobile/alternateMobile/office)
+    - add-tap: creates TAP — defaults to one-time/60min, operator can override both
+    - remove-taps: removes all active TAPs; shows expiry before confirming
+    - toolkit: new MFA & Auth section
+    
+    Co-authored-by: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+[33mcommit 85e3b848462fc2387878d5845758d149cb9536fa[m
+Merge: 898129b c9d025a
+Author: Big-Bronson <email@stephenvella.work>
+Commit: GitHub <noreply@github.com>
+
+    Merge pull request #1 from Big-Bronson/feat/judgment-commands
+    
+    Add disable-autocalevents and inherit-permissions
+
+[33mcommit c9d025a2ff4aa406f6a56dce5fffa7d37290c1f6[m[33m ([m[1;31morigin/feat/judgment-commands[m[33m, [m[1;32mfeat/judgment-commands[m[33m)[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: Big-Bronson <email@stephenvella.work>
+
+    Add disable-autocalevents and inherit-permissions
+    
+    Two of the originally-promised commands that need real care, brought back
+    from the "Planned" list:
+    
+    disable-autocalevents — tenant-wide Outlook 'Events from email' kill.
+    Iterates every UserMailbox and SharedMailbox via Get-Mailbox, calls
+    Set-MailboxCalendarConfiguration -EventsFromEmailEnabled $false on each.
+    Because this affects an entire tenant the script forces the operator to
+    type the primary verified domain before doing anything; a typo aborts.
+    Already-disabled mailboxes are recorded as SKIPPED so re-runs are cheap.
+    CSV log lands on the operator's Desktop with per-mailbox status.
+    
+    inherit-permissions — NTFS ACL reset. Re-enables inheritance on a folder
+    via SetAccessRuleProtection($false, $true). The 'preserveInheritance' arg
+    is set to $true so the folder doesn't briefly lose access during the
+    transition. After inheritance is on, the operator is asked separately
+    whether to strip the explicit (non-inherited) ACEs that remain. Pure
+    local — no Graph or Exchange dependency. Includes the takeown hint in
+    the failure path because permission errors here usually mean ownership.
+    
+    Manifest, toolkit() menu, README all updated. CHANGELOG entry under
+    [Unreleased]. Two entries removed from the README "Planned" list.
+
+[33mcommit 898129bfd816ee3f76d22e2a02697312a5bc6154[m[33m ([m[1;33mtag: [m[1;33mv1.0.1[m[33m)[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: Big-Bronson <email@stephenvella.work>
+
+    Release 1.0.1: trim manifest, fix repo URLs, dated changelog
+    
+    Fix LicenseUri/ProjectUri pointing at the wrong repo slug
+    (Big-Bronson/StevesScriptorium → Big-Bronson/Steves-Scriptorium); same
+    correction applied to README clone instructions and Install.ps1 example.
+    
+    Trim FunctionsToExport to the 13 scripts that actually exist in Public/.
+    The 1.0.0 manifest declared 17 phantom functions, which made Publish.ps1's
+    sync check fail and surfaced "Script not found" errors when users picked
+    those entries from the toolkit menu. Phantom commands now live in a
+    README "Planned" section and will return as scripts ship.
+    
+    Trim toolkit() menu in psm1 accordingly; remove get-licensedusers ghost
+    entry. README publishing instructions updated to match the rewritten
+    Publish.ps1 (no -ApiKey parameter; uses Credential Manager / env var).
+    
+    Cut CHANGELOG [Unreleased] into a dated [1.0.1] section; seed a fresh
+    empty [Unreleased] for next cycle. Bump ModuleVersion to 1.0.1.
+
+[33mcommit 008e88fe3147f57eeccdcfa390d3072118e26a27[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: Big-Bronson <email@stephenvella.work>
+
+    Publish.ps1: support env var fallback for API key
+    
+    Get-StoredSecret relies on a profile-level helper that colleagues won't
+    have after cloning. Now tries Get-StoredSecret first (existing setup),
+    then falls back to PSGALLERY_API_KEY environment variable. Early-exit
+    error includes setup instructions for both paths.
+
+[33mcommit 2a6337afbdacca4cb4d834ac4415a025770760be[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: Big-Bronson <email@stephenvella.work>
+
+    Add CHANGELOG.md
+    
+    Starter changelog in Keep a Changelog format. Required by Publish.ps1
+    pre-flight checks before any PS Gallery release can run.
+    
+    Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+[33mcommit 68c6b82c3237d76f7ca997a8b656a129d1215e38[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: Big-Bronson <email@stephenvella.work>
+
+    Fix OrderedDictionary ContainsKey bug; add CLAUDE.md; Publish.ps1 rewrite
+    
+    - Fix .ContainsKey() → .Contains() on [ordered] hashtables in StevesScriptorium.psm1
+      and toolkit-profile.ps1 (OrderedDictionary does not have ContainsKey)
+    - Add CLAUDE.md with project context, architecture, conventions, and gotchas
+      for shared Claude Code sessions between co-engineers
+    - Publish.ps1 rewritten with pre-flight checks (manifest validation, parse check,
+      FunctionsToExport sync, clean git tree, CHANGELOG presence, Credential Manager
+      for API key). NOTE: requires CHANGELOG.md to be created before first publish run.
+    - get-inactiveusers.ps1: foreach → ForEach-Object loop refactor
+    - StevesScriptorium.psd1: hardcode copyright year, fix quote style
+    
+    Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+[33mcommit 326b0134cc457ec7aad1098807b2a4ec69f296f1[m
+Merge: 6897147 b5a01c7
+Author: Big-Bronson <email@stephenvella.work>
+Commit: Big-Bronson <email@stephenvella.work>
+
+    Fix Publish.ps1 string interpolation
+
+[33mcommit 6897147f61fd4a09afc796572c44573800c0d773[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: Big-Bronson <email@stephenvella.work>
+
+    Fix Publish.ps1 string interpolation on GUID error message
+
+[33mcommit b5a01c7d686c1fdab2c0196b553852cc014eaf2e[m
+Author: Big-Bronson <email@stephenvella.work>
+Commit: Big-Bronson <email@stephenvella.work>
+
+    Initial Release

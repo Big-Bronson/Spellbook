@@ -91,7 +91,7 @@ $declared = @($manifest.ExportedFunctions.Keys)
 $actual   = @(Get-ChildItem .\Public -Filter *.ps1 | Select-Object -ExpandProperty BaseName)
 
 $missingInManifest = $actual   | Where-Object { $_ -notin $declared }
-$missingFiles      = $declared | Where-Object { $_ -notin $actual   }
+$missingFiles = $declared | Where-Object { $_ -ne 'toolkit' -and $_ -notin $actual }
 
 if ($missingInManifest) {
     Write-Warn2 "In Public/ but not in FunctionsToExport: $($missingInManifest -join ', ')"
