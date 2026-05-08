@@ -37,11 +37,12 @@ $script:ToolkitFunctions = $PublicFunctions
 function global:toolkit {
     param([string]$Command)
 
+    # Menu must match Public/*.ps1 — keep this list honest. Ghost commands
+    # surface as "Script not found" when run.
     $commands = [ordered]@{
         # User Lifecycle
         "new-user"               = "Create a new M365 user and assign groups"
         "offboard-user"          = "Full offboarding — block, wipe, convert, log"
-        "reset-password"         = "Reset a Microsoft 365 account password"
         "set-userlicence"        = "Assign or remove a licence from a user"
 
         # User Reports & Auditing
@@ -51,46 +52,24 @@ function global:toolkit {
         "get-mfaaudit"           = "All users and their MFA registration status"
         "get-guestaudit"         = "Guest accounts with invite status and age"
         "get-signinlogs"         = "Recent sign-in events for a user"
-        "get-licensedusers"      = "All licensed users export"
 
         # Tenant Health
         "get-tenantreport"       = "Full tenant health snapshot"
 
         # Mailbox & Exchange
-        "get-userperms"          = "List all mailboxes a user has access to"
-        "get-mailboxperms"       = "List who has access to a specific mailbox"
-        "add-mailboxperms"       = "Grant Full Access and Send As on a mailbox"
-        "set-forwarding"         = "Enable email forwarding from a mailbox"
-        "remove-forwarding"      = "Remove email forwarding from a mailbox"
-        "get-archive"            = "Check archive size and quota"
-        "enable-autoexpand"      = "Enable auto-expanding archive"
-        "disable-autocalevents"  = "Disable automatic calendar events tenant-wide"
         "check-mailflow"         = "Trace message delivery for a sender/recipient"
         "get-sharedmailboxaudit" = "Shared mailboxes with delegates, size, licence status"
 
         # Groups
         "get-groupmembers"       = "List all members of a group"
-
-        # MFA & Auth
-        "get-smsmfa"             = "Check SMS MFA number on an account"
-        "set-smsmfa"             = "Update existing SMS MFA number"
-        "add-smsmfa"             = "Add SMS MFA number to an account"
-        "add-tap"                = "Create a Temporary Access Pass"
-        "remove-taps"            = "Remove all Temporary Access Passes from a user"
-
-        # System
-        "inherit-permissions"    = "Reset folder permissions to inherited"
-        "kill-graph"             = "Disconnect from Microsoft Graph"
     }
 
     $sectionHeaders = @{
         "new-user"               = "User Lifecycle"
         "get-userreport"         = "User Reports & Auditing"
         "get-tenantreport"       = "Tenant Health"
-        "get-userperms"          = "Mailbox & Exchange"
+        "check-mailflow"         = "Mailbox & Exchange"
         "get-groupmembers"       = "Groups"
-        "get-smsmfa"             = "MFA & Auth"
-        "inherit-permissions"    = "System"
     }
 
     if (-not $Command) {

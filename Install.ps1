@@ -5,8 +5,8 @@
 # to your PowerShell profile so it's available everywhere.
 #
 # Usage:
-#   git clone https://github.com/YOUR-ORG/StevesScriptorium.git
-#   cd StevesScriptorium
+#   git clone https://github.com/Big-Bronson/Steves-Scriptorium.git
+#   cd Steves-Scriptorium
 #   .\Install.ps1
 
 [CmdletBinding()]
