@@ -8,6 +8,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Added
+- `kill-graph` — disconnects the current Microsoft Graph session
+- `Pester smoke tests (`tests/Module.Tests.ps1`) — static checks for manifest sync and script parse errors
 
 - `tests/Module.Tests.ps1` — Pester smoke tests covering manifest validation, `FunctionsToExport`/`Public/` sync, parse-checks of every public script, and CHANGELOG sanity.
 - `.github/workflows/verify.yml` — runs Pester + PSScriptAnalyzer on every push to `main` and every PR. Errors fail the build; warnings are advisory.
