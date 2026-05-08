@@ -22,8 +22,8 @@ Import-Module StevesScriptorium
 ### From GitHub (clone and install)
 
 ```powershell
-git clone https://github.com/Big-Bronson/StevesScriptorium.git
-cd StevesScriptorium
+git clone https://github.com/Big-Bronson/Steves-Scriptorium.git
+cd Steves-Scriptorium
 .\Install.ps1
 ```
 
@@ -49,7 +49,6 @@ toolkit 3                 # run a command by number
 |---|---|
 | `toolkit new-user` | Create a new M365 user and assign groups |
 | `toolkit offboard-user` | Full offboarding — block, wipe, convert mailbox, export log |
-| `toolkit reset-password` | Reset a Microsoft 365 account password |
 | `toolkit set-userlicence` | Assign or remove a licence from a user |
 
 ### User Reports & Auditing
@@ -73,14 +72,6 @@ toolkit 3                 # run a command by number
 
 | Command | Description |
 |---|---|
-| `toolkit get-userperms` | List all mailboxes a user has access to |
-| `toolkit get-mailboxperms` | List who has access to a specific mailbox |
-| `toolkit add-mailboxperms` | Grant Full Access and Send As |
-| `toolkit set-forwarding` | Enable email forwarding from a mailbox |
-| `toolkit remove-forwarding` | Remove email forwarding |
-| `toolkit get-archive` | Check archive size and quota |
-| `toolkit enable-autoexpand` | Enable auto-expanding archive |
-| `toolkit disable-autocalevents` | Disable automatic calendar events tenant-wide |
 | `toolkit check-mailflow` | Trace message delivery for a sender/recipient pair |
 | `toolkit get-sharedmailboxaudit` | Shared mailboxes with delegates, size, licence status |
 
@@ -90,22 +81,14 @@ toolkit 3                 # run a command by number
 |---|---|
 | `toolkit get-groupmembers` | List all members of a group with CSV export |
 
-### MFA & Auth
+### Planned
 
-| Command | Description |
-|---|---|
-| `toolkit get-smsmfa` | Check SMS MFA number on an account |
-| `toolkit set-smsmfa` | Update existing SMS MFA number |
-| `toolkit add-smsmfa` | Add SMS MFA number to an account |
-| `toolkit add-tap` | Create a Temporary Access Pass |
-| `toolkit remove-taps` | Remove all Temporary Access Passes from a user |
+Tracked in the issue tracker; not yet shipped:
 
-### System
-
-| Command | Description |
-|---|---|
-| `toolkit inherit-permissions` | Reset folder permissions to inherited |
-| `toolkit kill-graph` | Disconnect from Microsoft Graph |
+- User Lifecycle: `reset-password`
+- Mailbox & Exchange: `get-userperms`, `get-mailboxperms`, `add-mailboxperms`, `set-forwarding`, `remove-forwarding`, `get-archive`, `enable-autoexpand`, `disable-autocalevents`
+- MFA & Auth: `get-smsmfa`, `set-smsmfa`, `add-smsmfa`, `add-tap`, `remove-taps`
+- System: `inherit-permissions`, `kill-graph`
 
 ---
 
@@ -164,14 +147,20 @@ StevesScriptorium/
 
 1. Update `ModuleVersion` in `StevesScriptorium.psd1`
 2. Update `ReleaseNotes` in the manifest
-3. Commit and push to GitHub
-4. Run:
+3. Move CHANGELOG `[Unreleased]` content into a dated `[x.y.z]` section
+4. Commit and push to GitHub (clean tree on `main` is required)
+5. Run:
 
 ```powershell
-.\Publish.ps1 -ApiKey "your-ps-gallery-api-key"
+.\Publish.ps1 -WhatIf   # dry run
+.\Publish.ps1           # publish
 ```
 
-Use `-WhatIf` for a dry run before publishing.
+`Publish.ps1` runs pre-flight checks (manifest validation, parse-check of all
+`Public/*.ps1`, `FunctionsToExport` sync, clean git tree, populated
+`[Unreleased]`). The PS Gallery API key is read from Windows Credential Manager
+(target `PSGallery-StevesScriptorium`) with `$env:PSGALLERY_API_KEY` as
+fallback.
 
 ---
 

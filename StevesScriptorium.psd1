@@ -6,7 +6,7 @@
 @{
     # Module identity
     RootModule        = 'StevesScriptorium.psm1'
-    ModuleVersion     = '1.0.0'
+    ModuleVersion     = '1.0.1'
     GUID              = '31541981-5235-4afe-bf0d-19c7b5fb438c'
     Author            = 'Stephen Vella'
     CompanyName       = 'stephenvella.work'
@@ -14,12 +14,12 @@
     Description       = 'M365 helpdesk toolkit for user lifecycle, tenant auditing, mailbox management, MFA and Exchange. Built for MSP engineers.'
     PowerShellVersion = '5.1'
 
-    # What this module exports
+    # What this module exports — must match Public/*.ps1 files exactly.
+    # Publish.ps1 cross-checks this list and aborts on drift.
     FunctionsToExport = @(
         'toolkit'
         'new-user'
         'offboard-user'
-        'reset-password'
         'set-userlicence'
         'get-userreport'
         'get-allusers'
@@ -28,24 +28,9 @@
         'get-guestaudit'
         'get-signinlogs'
         'get-tenantreport'
-        'get-userperms'
-        'get-mailboxperms'
-        'add-mailboxperms'
-        'set-forwarding'
-        'remove-forwarding'
-        'get-archive'
-        'enable-autoexpand'
-        'disable-autocalevents'
         'check-mailflow'
         'get-sharedmailboxaudit'
         'get-groupmembers'
-        'get-smsmfa'
-        'set-smsmfa'
-        'add-smsmfa'
-        'add-tap'
-        'remove-taps'
-        'inherit-permissions'
-        'kill-graph'
     )
 
     CmdletsToExport   = @()
@@ -63,9 +48,9 @@
     PrivateData = @{
         PSData = @{
             Tags         = @('M365', 'Microsoft365', 'Exchange', 'Helpdesk', 'MSP', 'Entra', 'PowerShell', 'Toolkit', 'MFA', 'Offboarding', 'Onboarding')
-            LicenseUri   = 'https://github.com/Big-Bronson/StevesScriptorium/blob/main/LICENSE'
-            ProjectUri   = 'https://github.com/Big-Bronson/StevesScriptorium'
-            ReleaseNotes = 'Initial release. User lifecycle, tenant health, mailbox auditing, MFA management, Exchange tools.'
+            LicenseUri   = 'https://github.com/Big-Bronson/Steves-Scriptorium/blob/main/LICENSE'
+            ProjectUri   = 'https://github.com/Big-Bronson/Steves-Scriptorium'
+            ReleaseNotes = '1.0.1 — Fixed: toolkit dispatch crash on [ordered] hashtables (.Contains vs .ContainsKey). Fixed: broken LicenseUri/ProjectUri (repo slug). Trimmed FunctionsToExport to match shipped scripts. Added: get-inactiveusers, hardened Publish.ps1.'
         }
     }
 }
