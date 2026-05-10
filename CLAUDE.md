@@ -83,3 +83,11 @@ Scripts call `Connect-MgGraph` and/or `Connect-ExchangeOnline` at the top if not
 - Use GitHub branches + PRs for all changes
 - This CLAUDE.md is the shared briefing — update it when you discover something future Claude sessions should know
 - If you make a decision that isn't obvious from reading the code, note it here
+
+## Architecture Decision Records
+
+Significant design and implementation decisions are documented as ADRs in `docs/decisions/`. Read the existing ADRs before making structural changes — they capture the "why" behind patterns that might otherwise look arbitrary.
+
+**When to write a new ADR:** any time a session introduces a new pattern, changes an existing one, or makes a non-obvious trade-off. Candidates include: new execution patterns, compatibility constraints, safety conventions, CI/publish pipeline changes, or anything where "why not the obvious alternative?" has a non-trivial answer.
+
+**At the end of any session that includes significant commits**, scan for decisions that lack an ADR and flag them to the user — even if you don't write them immediately. The goal is that the "why" is never lost.
