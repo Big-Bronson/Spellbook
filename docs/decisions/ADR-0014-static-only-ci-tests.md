@@ -18,7 +18,7 @@ The `ci/pester-and-actions` PR added automated testing on every push and PR. A c
 
 1. Manifest parses cleanly (`Test-ModuleManifest`)
 2. `FunctionsToExport` in the manifest matches the actual files in `Public/` (no ghost exports, no undeclared scripts)
-3. `toolkit` is explicitly declared in `FunctionsToExport`
+3. `invoke` is explicitly declared in `FunctionsToExport`
 4. `ProjectUri` and `LicenseUri` point at the correct repo slug
 5. Every `Public/*.ps1` parses without syntax errors (AST parser)
 6. `CHANGELOG.md` has an `[Unreleased]` section

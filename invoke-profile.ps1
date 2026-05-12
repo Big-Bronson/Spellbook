@@ -1,8 +1,8 @@
-# toolkit-profile.ps1
+# invoke-profile.ps1
 # -----------------------------------------------------------------------------
-# Standalone profile-snippet version of the toolkit() dispatcher.
+# Standalone profile-snippet version of the invoke() dispatcher.
 #
-# Why this file exists alongside StevesScriptorium.psm1
+# Why this file exists alongside Spellbook.psm1
 # -----------------------------------------------------
 # This is the dual-distribution counterpart described in ADR-0002. The .psm1
 # is for engineers who install via PowerShell Gallery (Install-Module). This
@@ -24,17 +24,17 @@
 # CLAUDE.md flags "ghost commands" (menu entries with no matching .ps1 on
 # disk) as a known anti-pattern: the user sees the entry, types it, and
 # gets a confusing "Script not found" error. The list below is curated to
-# match the shipped Public/*.ps1 set in StevesScriptorium. If you fork
-# this snippet for a personal toolkit with custom scripts, keep this list
+# match the shipped Public/*.ps1 set in Spellbook. If you fork
+# this snippet for a personal invoke with custom scripts, keep this list
 # in sync with what's actually on disk.
 
-function toolkit {
+function invoke {
     param([string]$Command)
 
     # Adjust this to wherever your standalone scripts live.
     $scriptsPath = "$env:USERPROFILE\Scripts"
 
-    # $commands is declared [ordered] so the numeric shortcut (toolkit 3)
+    # $commands is declared [ordered] so the numeric shortcut (invoke 3)
     # resolves to a stable position. See ADR-0010 for why this matters
     # AND why the membership check below uses .Contains() rather than
     # .ContainsKey() — OrderedDictionary does not expose ContainsKey and
@@ -84,7 +84,7 @@ function toolkit {
     # No argument — print the full list
     if (-not $Command) {
         Write-Host ""
-        Write-Host "  toolkit <command>" -ForegroundColor Cyan
+        Write-Host "  invoke <command>" -ForegroundColor Cyan
         Write-Host ""
 
         # $sectionMap drives the Yellow header rendering during enumeration:
@@ -116,17 +116,17 @@ function toolkit {
         }
 
         Write-Host ""
-        Write-Host "  Example: toolkit new-user    |    toolkit 2    |    toolkit get-tenantreport" -ForegroundColor DarkGray
+        Write-Host "  Example: invoke new-user    |    invoke 2    |    invoke get-tenantreport" -ForegroundColor DarkGray
         Write-Host ""
         return
     }
 
-    # Resolve numeric shortcut (eg. toolkit 5)
+    # Resolve numeric shortcut (eg. invoke 5)
     if ($Command -match '^\d+$') {
         $index = [int]$Command
         $keys  = @($commands.Keys)
         if ($index -lt 1 -or $index -gt $keys.Count) {
-            Write-Host "  No command at index $index. Run 'toolkit' to see the list." -ForegroundColor Red
+            Write-Host "  No command at index $index. Run 'invoke' to see the list." -ForegroundColor Red
             return
         }
         $Command = $keys[$index - 1]
@@ -145,6 +145,6 @@ function toolkit {
         }
     } else {
         Write-Host "  Unknown command: '$Command'" -ForegroundColor Red
-        Write-Host "  Run 'toolkit' to see available commands." -ForegroundColor DarkGray
+        Write-Host "  Run 'invoke' to see available commands." -ForegroundColor DarkGray
     }
 }

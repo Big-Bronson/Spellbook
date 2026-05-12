@@ -1,4 +1,4 @@
-# StevesScriptorium — Design Document
+# Spellbook — Design Document
 
 **Audience:** Someone learning how this module is built, why it was built that way, and what to keep in mind when extending it.
 
@@ -6,13 +6,13 @@
 
 ## What this is
 
-StevesScriptorium is a PowerShell module published to the PowerShell Gallery. It gives MSP helpdesk engineers a consistent, numbered CLI for common Microsoft 365 tasks — creating users, offboarding, managing mailbox permissions, auditing MFA, running tenant reports.
+Spellbook is a PowerShell module published to the PowerShell Gallery. It gives MSP helpdesk engineers a consistent, numbered CLI for common Microsoft 365 tasks — creating users, offboarding, managing mailbox permissions, auditing MFA, running tenant reports.
 
-The problem it solves: an MSP engineer logs into a customer tenant and needs to do five different things. Without a toolkit, they open five different browser tabs, five sets of documentation, and type five different PowerShell cmdlets from memory. With the toolkit, they type `toolkit` and pick from a numbered list.
+The problem it solves: an MSP engineer logs into a customer tenant and needs to do five different things. Without Spellbook, they open five different browser tabs, five sets of documentation, and type five different PowerShell cmdlets from memory. With Spellbook, they type `invoke` and pick from a numbered list.
 
 ```
-  Steve's Scriptorium
-  toolkit <command>  |  toolkit <number>
+  Spellbook
+  invoke <command>  |  invoke <number>
 
   User Lifecycle:
    1. new-user                         Create a new M365 user and assign groups
@@ -33,17 +33,17 @@ The goal is not to hide complexity — it is to make the right thing the easy th
 ```
 PowerShell session
 │
-├── Import-Module StevesScriptorium
+├── Import-Module Spellbook
 │     │
-│     ├── StevesScriptorium.psm1  (loads everything)
+│     ├── Spellbook.psm1  (loads everything)
 │     │     ├── Dot-sources every Public/*.ps1 as a global function
-│     │     └── Defines toolkit()
+│     │     └── Defines invoke()
 │     │
-│     └── StevesScriptorium.psd1  (manifest: version, exports, dependencies)
+│     └── Spellbook.psd1  (manifest: version, exports, dependencies)
 │
-└── Engineer types: toolkit offboard-user
+└── Engineer types: invoke offboard-user
       │
-      └── toolkit() dot-sources Public/offboard-user.ps1 into the session
+      └── invoke() dot-sources Public/offboard-user.ps1 into the session
             │
             ├── Connects to Exchange Online (if not already)
             ├── Connects to Microsoft Graph (if not already)
@@ -54,7 +54,7 @@ PowerShell session
 There are also two files that live outside the module boundary:
 
 - **`Publish.ps1`** — the publisher. Run this when you want to push a new version to PS Gallery.
-- **`toolkit-profile.ps1`** — a standalone version of the toolkit menu that engineers paste into their `$PROFILE`. Used without installing the module.
+- **`invoke-profile.ps1`** — a standalone version of the Spellbook menu that engineers paste into their `$PROFILE`. Used without installing the module.
 - **`Install.ps1`** — a bootstrap script. Clones the repo and installs the module dependencies.
 
 ---
@@ -71,11 +71,11 @@ Normal script invocation (`& ".\script.ps1"`) runs the script in a child scope a
 
 Dot-sourcing (`. ".\script.ps1"`) runs the script in the *current* scope. Everything the script creates — variables, functions, connections — persists in the caller's session after the script completes.
 
-This matters because MSP engineers use this toolkit interactively. They connect to Exchange Online, run a few commands, and don't want to re-authenticate for every command. Dot-sourcing lets each script check whether a connection already exists and skip the auth step if it does.
+This matters because MSP engineers use Spellbook interactively. They connect to Exchange Online, run a few commands, and don't want to re-authenticate for every command. Dot-sourcing lets each script check whether a connection already exists and skip the auth step if it does.
 
 ### How the module sets this up
 
-When the module loads (`StevesScriptorium.psm1`), it does something clever: it wraps each Public script in a one-line function that dot-sources it:
+When the module loads (`Spellbook.psm1`), it does something clever: it wraps each Public script in a one-line function that dot-sources it:
 
 ```powershell
 Get-ChildItem -Path $PublicPath -Filter "*.ps1" | ForEach-Object {
@@ -86,11 +86,11 @@ Get-ChildItem -Path $PublicPath -Filter "*.ps1" | ForEach-Object {
 }
 ```
 
-So after `Import-Module StevesScriptorium`, typing `offboard-user` at the prompt directly runs `Public/offboard-user.ps1` in the engineer's session scope. The function name *is* the script filename without the `.ps1` extension.
+So after `Import-Module Spellbook`, typing `offboard-user` at the prompt directly runs `Public/offboard-user.ps1` in the engineer's session scope. The function name *is* the script filename without the `.ps1` extension.
 
-### How toolkit() dispatches
+### How invoke() dispatches
 
-`toolkit()` is a second layer — it provides the numbered menu and name-based lookup. When the engineer types `toolkit offboard-user` or `toolkit 2`:
+`invoke()` is a second layer — it provides the numbered menu and name-based lookup. When the engineer types `invoke offboard-user` or `invoke 2`:
 
 ```powershell
 if ($commands.Contains($Command)) {
@@ -386,7 +386,7 @@ Any new command that affects an entire tenant should follow this pattern. Comman
 
 ## The module manifest and dependency pinning
 
-`StevesScriptorium.psd1` serves two purposes: it tells PowerShell what the module exports, and it tells the PS Gallery what the module is.
+`Spellbook.psd1` serves two purposes: it tells PowerShell what the module exports, and it tells the PS Gallery what the module is.
 
 ### FunctionsToExport — the contract
 
@@ -394,15 +394,15 @@ Any new command that affects an entire tenant should follow this pattern. Comman
 
 ```powershell
 FunctionsToExport = @(
-    'toolkit'
+    'invoke'
     'new-user'
     'offboard-user'
     'set-userlicence'
-    # ... one entry per Public/*.ps1, plus toolkit
+    # ... one entry per Public/*.ps1, plus invoke
 )
 ```
 
-If a script exists in `Public/` but is not in this list, the module imports without it — engineers cannot call it. If a name is in this list but has no corresponding `.ps1`, calling it produces "Script not found" from `toolkit()` — confusing and embarrassing.
+If a script exists in `Public/` but is not in this list, the module imports without it — engineers cannot call it. If a name is in this list but has no corresponding `.ps1`, calling it produces "Script not found" from `invoke()` — confusing and embarrassing.
 
 The 1.0.0 release had both problems. Seventeen functions were declared that did not exist. The 1.0.1 fix trimmed the list to match reality and moved unbuilt commands to a "Planned" section in the README.
 
@@ -470,14 +470,14 @@ When you add a new Public script, there are seven things that must stay in sync:
 | Location | What to add |
 |----------|-------------|
 | `Public/your-command.ps1` | The script itself |
-| `StevesScriptorium.psm1` | Entry in `$commands` ordered hashtable |
-| `StevesScriptorium.psm1` | Entry in `$sectionHeaders` if it opens a new section |
-| `toolkit-profile.ps1` | Same entry in its `$commands` hashtable |
-| `StevesScriptorium.psd1` | Entry in `FunctionsToExport` |
+| `Spellbook.psm1` | Entry in `$commands` ordered hashtable |
+| `Spellbook.psm1` | Entry in `$sectionHeaders` if it opens a new section |
+| `invoke-profile.ps1` | Same entry in its `$commands` hashtable |
+| `Spellbook.psd1` | Entry in `FunctionsToExport` |
 | `README.md` | Row in the command table |
 | `CHANGELOG.md` | Entry under `[Unreleased]` |
 
-The Pester tests will catch a missing `FunctionsToExport` entry. The CI will catch a parse error in the script. But the `toolkit-profile.ps1` and `README.md` updates are not tested — they require discipline.
+The Pester tests will catch a missing `FunctionsToExport` entry. The CI will catch a parse error in the script. But the `invoke-profile.ps1` and `README.md` updates are not tested — they require discipline.
 
 ### The checklist for the script itself
 
@@ -494,7 +494,7 @@ The Pester tests will catch a missing `FunctionsToExport` entry. The CI will cat
 
 ## The ordered hashtable quirk
 
-`toolkit()` stores the command list in an `[ordered]@{}` (an `OrderedDictionary`). Ordered dictionaries maintain insertion order, which is why the menu always appears in the same sequence.
+`invoke()` stores the command list in an `[ordered]@{}` (an `OrderedDictionary`). Ordered dictionaries maintain insertion order, which is why the menu always appears in the same sequence.
 
 However, `OrderedDictionary` is not a regular hashtable. It does not have a `.ContainsKey()` method — that method exists only on `Hashtable`. Calling `.ContainsKey()` on an ordered dictionary throws an `InvalidOperation` error at runtime.
 
@@ -508,7 +508,7 @@ if ($commands.ContainsKey($Command)) { ... }
 if ($commands.Contains($Command)) { ... }
 ```
 
-This caught the toolkit in production (1.0.0 release). Any command lookup against `$commands` must use `.Contains()`. Both `StevesScriptorium.psm1` and `toolkit-profile.ps1` were patched.
+This caught Spellbook in production (1.0.0 release). Any command lookup against `$commands` must use `.Contains()`. Both `Spellbook.psm1` and `invoke-profile.ps1` were patched.
 
 ---
 
@@ -516,11 +516,11 @@ This caught the toolkit in production (1.0.0 release). Any command lookup agains
 
 The module ships in two forms.
 
-**Published module** (`Install-Module StevesScriptorium`): the standard PowerShell Gallery installation. Requires `Install-Module` access, an internet connection, and the three `RequiredModules` to be present. Installs into the module path. Engineers use `Import-Module StevesScriptorium` in their profile.
+**Published module** (`Install-Module Spellbook`): the standard PowerShell Gallery installation. Requires `Install-Module` access, an internet connection, and the three `RequiredModules` to be present. Installs into the module path. Engineers use `Import-Module Spellbook` in their profile.
 
-**Profile snippet** (`toolkit-profile.ps1`): a standalone function definition the engineer pastes directly into their `$PROFILE`. No module installation required. The function points at a local copy of the scripts folder. This is for engineers on locked-down machines where they cannot run `Install-Module`, or who want the toolkit available before the module is installed.
+**Profile snippet** (`invoke-profile.ps1`): a standalone function definition the engineer pastes directly into their `$PROFILE`. No module installation required. The function points at a local copy of the scripts folder. This is for engineers on locked-down machines where they cannot run `Install-Module`, or who want Spellbook available before the module is installed.
 
-The two distributions must stay in sync. When a new command is added, both the psm1 command table and the profile snippet's command table need the entry. When the toolkit menu structure changes, both need updating.
+The two distributions must stay in sync. When a new command is added, both the psm1 command table and the profile snippet's command table need the entry. When the Spellbook menu structure changes, both need updating.
 
 ---
 

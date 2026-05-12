@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Publishes StevesScriptorium to PowerShell Gallery with pre-flight checks.
+Publishes Spellbook to PowerShell Gallery with pre-flight checks.
 
 .DESCRIPTION
 Validates the manifest, parse-checks all Public/*.ps1, cross-checks
@@ -30,9 +30,9 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # --- Configuration ---------------------------------------------------------
-$ModuleName   = 'StevesScriptorium'
+$ModuleName   = 'Spellbook'
 $ManifestPath = ".\$ModuleName.psd1"
-$CredTarget   = 'PSGallery-StevesScriptorium'
+$CredTarget   = 'PSGallery-Spellbook'
 
 # --- Helpers ---------------------------------------------------------------
 function Write-Step  { param($m) Write-Host "==> $m" -ForegroundColor Cyan }
@@ -48,7 +48,7 @@ No API key source found. Set one up before publishing:
 
   Option A — Windows Credential Manager (recommended for regular publishers):
     Add Get-StoredSecret / Set-StoredSecret helpers to your $PROFILE, then:
-    Set-StoredSecret -Target 'PSGallery-StevesScriptorium' -Secret '<your-key>'
+    Set-StoredSecret -Target 'PSGallery-Spellbook' -Secret '<your-key>'
 
   Option B — Environment variable (simplest for one-off use):
     $env:PSGALLERY_API_KEY = '<your-key>'
@@ -91,7 +91,7 @@ $declared = @($manifest.ExportedFunctions.Keys)
 $actual   = @(Get-ChildItem .\Public -Filter *.ps1 | Select-Object -ExpandProperty BaseName)
 
 $missingInManifest = $actual   | Where-Object { $_ -notin $declared }
-$missingFiles = $declared | Where-Object { $_ -ne 'toolkit' -and $_ -notin $actual }
+$missingFiles = $declared | Where-Object { $_ -ne 'invoke' -and $_ -notin $actual }
 
 if ($missingInManifest) {
     Write-Warn2 "In Public/ but not in FunctionsToExport: $($missingInManifest -join ', ')"

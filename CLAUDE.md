@@ -1,4 +1,4 @@
-# CLAUDE.md — Steve's Scriptorium
+# CLAUDE.md — Spellbook
 
 Shared context for all Claude Code sessions in this repo. Update this file when you learn something that future Claude sessions should know.
 
@@ -6,37 +6,37 @@ Shared context for all Claude Code sessions in this repo. Update this file when 
 
 ## What this project is
 
-A PowerShell module (`StevesScriptorium`) published to the PowerShell Gallery. It's an M365 helpdesk toolkit for MSP engineers — CLI-driven commands for user lifecycle, mailbox management, MFA, Exchange, and tenant auditing. No GUIs.
+A PowerShell module (`Spellbook`) published to the PowerShell Gallery. It's an M365 helpdesk toolkit for MSP engineers — CLI-driven commands for user lifecycle, mailbox management, MFA, Exchange, and tenant auditing. No GUIs.
 
 **Owners:** Steve Vella + one co-engineer. Both use Claude Code.
 
-**GitHub:** `Big-Bronson/Steves-Scriptorium`
+**GitHub:** `Big-Bronson/Spellbook`
 
 ---
 
 ## Architecture
 
 ```
-StevesScriptorium/
-├── StevesScriptorium.psm1   # Module root — loads Public/, exposes toolkit()
-├── StevesScriptorium.psd1   # Manifest — version, PS Gallery metadata, FunctionsToExport
-├── toolkit-profile.ps1      # Standalone profile version of toolkit() (separate from psm1)
+Spellbook/
+├── Spellbook.psm1   # Module root — loads Public/, exposes invoke()
+├── Spellbook.psd1   # Manifest — version, PS Gallery metadata, FunctionsToExport
+├── invoke-profile.ps1      # Standalone profile version of invoke() (separate from psm1)
 ├── Public/                  # One .ps1 per command — each is a self-contained script
 ├── Install.ps1              # Bootstrap installer (clone → run this)
 └── Publish.ps1              # PS Gallery publisher
 ```
 
-The `toolkit()` function in `StevesScriptorium.psm1` is the CLI dispatcher. It holds an `[ordered]` hashtable of all command names → descriptions, and a separate `$sectionHeaders` hashtable for display grouping.
+The `invoke()` function in `Spellbook.psm1` is the CLI dispatcher. It holds an `[ordered]` hashtable of all command names → descriptions, and a separate `$sectionHeaders` hashtable for display grouping.
 
 ---
 
 ## How to add a new command
 
 1. Create `Public/your-command-name.ps1`
-2. Add an entry to the `$commands` ordered hashtable in `StevesScriptorium.psm1`
-3. Add the same entry to `toolkit-profile.ps1` if it mirrors the same command set
-4. If the command opens a new section in `toolkit`, add it to `$sectionHeaders` (psm1) and `$sectionMap` (toolkit-profile.ps1)
-5. Add to `FunctionsToExport` in `StevesScriptorium.psd1`
+2. Add an entry to the `$commands` ordered hashtable in `Spellbook.psm1`
+3. Add the same entry to `invoke-profile.ps1` if it mirrors the same command set
+4. If the command opens a new section in `invoke`, add it to `$sectionHeaders` (psm1) and `$sectionMap` (invoke-profile.ps1)
+5. Add to `FunctionsToExport` in `Spellbook.psd1`
 6. Add a row to the README command table
 7. Bump `ModuleVersion` in the `.psd1`
 
@@ -56,7 +56,7 @@ if ($commands.ContainsKey($key)) { ... }
 if ($commands.Contains($key)) { ... }
 ```
 
-This has burned us before. Both `StevesScriptorium.psm1` and `toolkit-profile.ps1` were patched for this.
+This has burned us before. Both `Spellbook.psm1` and `invoke-profile.ps1` were patched for this.
 
 ### Each Public script connects itself
 

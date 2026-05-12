@@ -5,14 +5,14 @@
 
 ## You are working in
 
-`F:\Codebases\StevesScriptorium` on Windows. PowerShell module published to
-PowerShell Gallery as `StevesScriptorium`. GitHub repo:
-`https://github.com/Big-Bronson/Steves-Scriptorium`. **Read `CLAUDE.md` first**
+`F:\Codebases\Spellbook` on Windows. PowerShell module published to
+PowerShell Gallery as `Spellbook`. GitHub repo:
+`https://github.com/Big-Bronson/Spellbook`. **Read `CLAUDE.md` first**
 — it contains the architecture, conventions, and known gotchas. The biggest
 gotchas, repeated here so you don't miss them:
 
 - `[ordered]@{}` requires `.Contains()`, never `.ContainsKey()`.
-- Public scripts are dot-sourced by `toolkit()`. Use `return`, not `exit`.
+- Public scripts are dot-sourced by `invoke()`. Use `return`, not `exit`.
 - Public scripts must be self-contained: each connects its own
   `Connect-MgGraph` / `Connect-ExchangeOnline` and requests only the scopes
   it needs.
@@ -23,18 +23,18 @@ gotchas, repeated here so you don't miss them:
 
 Three open PRs on GitHub, each off `main`. None merged yet:
 
-1. [`fix/script-portability`](https://github.com/Big-Bronson/Steves-Scriptorium/pull/new/fix/script-portability)
+1. [`fix/script-portability`](https://github.com/Big-Bronson/Spellbook/pull/new/fix/script-portability)
    — fixes 8 `exit → return` sites, replaces System.Web password generator
    with a portable RNG-based one in `offboard-user.ps1`, makes `new-user.ps1`
    accept a `SecureString`, and makes the offboard log actually contain the
    generated password. Smoke-tested locally; needs one PS 7 end-to-end
    `offboard-user` run against a throwaway tenant account before publish.
 
-2. [`feat/judgment-commands`](https://github.com/Big-Bronson/Steves-Scriptorium/pull/new/feat/judgment-commands)
+2. [`feat/judgment-commands`](https://github.com/Big-Bronson/Spellbook/pull/new/feat/judgment-commands)
    — adds `disable-autocalevents` (tenant-wide; forces typing the primary
    domain to confirm) and `inherit-permissions` (NTFS ACL reset).
 
-3. [`ci/pester-and-actions`](https://github.com/Big-Bronson/Steves-Scriptorium/pull/new/ci/pester-and-actions)
+3. [`ci/pester-and-actions`](https://github.com/Big-Bronson/Spellbook/pull/new/ci/pester-and-actions)
    — Pester smoke tests + GitHub Actions workflow running Pester and
    PSScriptAnalyzer on every push and PR.
 
@@ -53,8 +53,8 @@ Implement the remaining "Planned" commands listed in `README.md`, then cut
 review stays sane. After each command:
 
 1. Place it under `Public/` as `<command-name>.ps1`.
-2. Add to `FunctionsToExport` in `StevesScriptorium.psd1`.
-3. Add to the `$commands` ordered hashtable in `StevesScriptorium.psm1`,
+2. Add to `FunctionsToExport` in `Spellbook.psd1`.
+3. Add to the `$commands` ordered hashtable in `Spellbook.psm1`,
    in the right section. If the section is currently empty, also add the
    first command's key to `$sectionHeaders`.
 4. Add a row to the matching table in `README.md`. Remove the entry from
@@ -66,10 +66,10 @@ review stays sane. After each command:
 Before each PR, run the cross-check inline:
 
 ```powershell
-$m = Test-ModuleManifest .\StevesScriptorium.psd1
+$m = Test-ModuleManifest .\Spellbook.psd1
 $declared = @($m.ExportedFunctions.Keys)
 $actual = @(Get-ChildItem .\Public -Filter *.ps1 | Select -Expand BaseName)
-$declared | Where { $_ -notin $actual -and $_ -ne 'toolkit' }  # must be empty
+$declared | Where { $_ -notin $actual -and $_ -ne 'invoke' }  # must be empty
 $actual   | Where { $_ -notin $declared }                       # must be empty
 ```
 
@@ -115,7 +115,7 @@ Once all three open PRs and your batches have merged:
    `Update-MgUser -PasswordProfile` accepts the generated string. (Graph
    sometimes rejects passwords that pass complexity rules but trip a
    separate dictionary check.)
-2. Bump `ModuleVersion` in `StevesScriptorium.psd1` to `1.0.2`.
+2. Bump `ModuleVersion` in `Spellbook.psd1` to `1.0.2`.
 3. Update `ReleaseNotes` in the manifest's `PrivateData.PSData` block.
 4. Cut CHANGELOG `[Unreleased]` into a dated `[1.0.2] — <today>` section,
    seed a fresh empty `[Unreleased]` above it.
@@ -133,7 +133,7 @@ This is a known minor flaw worth fixing separately.
 
 ## Things to NOT do
 
-- Don't add scripts to `toolkit-profile.ps1`. That's a standalone snippet
+- Don't add scripts to `invoke-profile.ps1`. That's a standalone snippet
   for users who don't install the module and isn't part of the package.
 - Don't add new dependencies in `RequiredModules` unless absolutely needed.
   The current six are enough for everything in scope.

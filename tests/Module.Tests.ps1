@@ -1,5 +1,5 @@
 # Module.Tests.ps1
-# Smoke tests for StevesScriptorium. These are the same checks Publish.ps1
+# Smoke tests for Spellbook. These are the same checks Publish.ps1
 # runs at publish time — extracted so they run on every push/PR. The point
 # is to catch manifest drift before someone tries to publish a broken
 # module, not to test command behaviour against a tenant.
@@ -14,7 +14,7 @@ $PublicScripts = Get-ChildItem -Path (Join-Path $RepoRoot 'Public') -Filter '*.p
 
 BeforeAll {
     $script:RepoRoot     = Split-Path -Parent $PSScriptRoot
-    $script:ManifestPath = Join-Path $RepoRoot 'StevesScriptorium.psd1'
+    $script:ManifestPath = Join-Path $RepoRoot 'Spellbook.psd1'
     $script:Manifest     = Test-ModuleManifest -Path $ManifestPath
     $script:PublicScripts = Get-ChildItem -Path (Join-Path $RepoRoot 'Public') -Filter '*.ps1'
 }
@@ -29,11 +29,11 @@ Describe 'Manifest' {
     }
 
     It 'declares ProjectUri pointing at the actual repo' {
-        $Manifest.PrivateData.PSData.ProjectUri | Should -Match 'Big-Bronson/Steves-Scriptorium'
+        $Manifest.PrivateData.PSData.ProjectUri | Should -Match 'Big-Bronson/Spellbook'
     }
 
     It 'declares LicenseUri pointing at the actual repo' {
-        $Manifest.PrivateData.PSData.LicenseUri | Should -Match 'Big-Bronson/Steves-Scriptorium'
+        $Manifest.PrivateData.PSData.LicenseUri | Should -Match 'Big-Bronson/Spellbook'
     }
 }
 
@@ -48,13 +48,13 @@ Describe 'FunctionsToExport vs Public/' {
         $missing | Should -BeNullOrEmpty -Because "scripts exist but are not exported: $($missing -join ', ')"
     }
 
-    It 'every FunctionsToExport entry has a matching Public/ script (toolkit excepted)' {
-        $missing = @($Declared | Where-Object { $_ -notin $Actual -and $_ -ne 'toolkit' })
+    It 'every FunctionsToExport entry has a matching Public/ script (invoke excepted)' {
+        $missing = @($Declared | Where-Object { $_ -notin $Actual -and $_ -ne 'invoke' })
         $missing | Should -BeNullOrEmpty -Because "exported but no script: $($missing -join ', ')"
     }
 
-    It 'declares toolkit explicitly' {
-        $Declared | Should -Contain 'toolkit'
+    It 'declares invoke explicitly' {
+        $Declared | Should -Contain 'invoke'
     }
 }
 

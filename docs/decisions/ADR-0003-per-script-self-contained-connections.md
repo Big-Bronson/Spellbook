@@ -35,7 +35,7 @@ Graph connections use `-ContextScope Process` to avoid polluting a broader sessi
 
 **Minimum-privilege scopes:** A script that only reads user data should not hold `Directory.ReadWrite.All`. If an engineer runs `get-userreport` and then `offboard-user`, each command negotiates only what it requires. This limits blast radius from a mistaken connection.
 
-**Independent runnability:** Scripts can be run directly (e.g. `.\Public\get-userreport.ps1`) or via `toolkit` without needing a module-level setup step. This supports the profile-snippet distribution path (see `toolkit-profile.ps1`) and makes individual scripts usable outside the module.
+**Independent runnability:** Scripts can be run directly (e.g. `.\Public\get-userreport.ps1`) or via `invoke` without needing a module-level setup step. This supports the profile-snippet distribution path (see `invoke-profile.ps1`) and makes individual scripts usable outside the module.
 
 **Re-use when already connected:** The `if (-not ...)` guard means that if an engineer has already authenticated (e.g. from the previous command), the check is near-zero cost — it does not re-prompt or re-auth.
 

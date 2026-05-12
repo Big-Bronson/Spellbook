@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory contains ADRs for Steves-Scriptorium.
+This directory contains ADRs for Spellbook.
 
 An ADR captures a significant design or implementation decision: what was decided, why, and what alternatives were considered. They are written close to the time of the decision so the reasoning is not lost.
 

@@ -45,7 +45,7 @@ The output schema (column order, column names) shown to the operator and written
 
 **Keep using the deprecated V1 cmdlets but suppress the deprecation warning.** Deferring a known breaking change for cosmetic reasons. Ruled out.
 
-**Wrap the V2 cmdlets in a private helper and call the helper from `check-mailflow`.** A reasonable refactor, but premature: only one script in the toolkit uses message-trace cmdlets. ADR-0003 (per-script self-contained scripts) argues against pulling shared logic out unless it's used in more than one place. If/when other scripts need message-trace, revisit.
+**Wrap the V2 cmdlets in a private helper and call the helper from `check-mailflow`.** A reasonable refactor, but premature: only one script in Spellbook uses message-trace cmdlets. ADR-0003 (per-script self-contained scripts) argues against pulling shared logic out unless it's used in more than one place. If/when other scripts need message-trace, revisit.
 
 ---
 
@@ -81,7 +81,7 @@ The script is approximately 110 lines including comments — the comment density
 ## Related files
 
 - `Public/check-mailflow.ps1` — the rewritten script
-- `StevesScriptorium.psd1` — `RequiredModules` entry for `ExchangeOnlineManagement` bumped to 3.7.0
+- `Spellbook.psd1` — `RequiredModules` entry for `ExchangeOnlineManagement` bumped to 3.7.0
 - `CHANGELOG.md` — entry under `[1.1.0]` → `### Changed`
 - ADR-0003 — per-script self-contained connections (why we don't extract a shared message-trace helper yet)
 - ADR-0004 — Desktop CSV destinations (drives the export path)

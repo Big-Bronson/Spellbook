@@ -1,12 +1,12 @@
 # Install.ps1
-# Bootstrap installer for Steve's Scriptorium.
+# Bootstrap installer for Spellbook.
 # Run this after cloning the repo — it installs dependencies,
-# copies the module to your PS module path, and adds toolkit()
+# copies the module to your PS module path, and adds invoke()
 # to your PowerShell profile so it's available everywhere.
 #
 # Usage:
-#   git clone https://github.com/Big-Bronson/Steves-Scriptorium.git
-#   cd Steves-Scriptorium
+#   git clone https://github.com/Big-Bronson/Spellbook.git
+#   cd Spellbook
 #   .\Install.ps1
 
 [CmdletBinding()]
@@ -15,10 +15,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$moduleName = "StevesScriptorium"
+$moduleName = "Spellbook"
 
 Write-Host ""
-Write-Host "  Steve's Scriptorium — Installer" -ForegroundColor Cyan
+Write-Host "  Spellbook — Installer" -ForegroundColor Cyan
 Write-Host "  ================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -92,7 +92,7 @@ if (-not (Test-Path $PROFILE)) {
 $profileContent = Get-Content $PROFILE -Raw -ErrorAction SilentlyContinue
 
 if ($profileContent -notmatch [regex]::Escape($profileLine)) {
-    Add-Content -Path $PROFILE -Value "`n# Steve's Scriptorium`n$profileLine"
+    Add-Content -Path $PROFILE -Value "`n# Spellbook`n$profileLine"
     Write-Host "  [OK] Added to PowerShell profile" -ForegroundColor Green
 } else {
     Write-Host "  [OK] Already in PowerShell profile" -ForegroundColor Green
@@ -103,7 +103,7 @@ Write-Host ""
 Write-Host "  Installation complete." -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Restart your terminal, then run:" -ForegroundColor White
-Write-Host "    toolkit" -ForegroundColor Yellow
+Write-Host "    invoke" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "  Or import immediately in this session:" -ForegroundColor White
 Write-Host "    Import-Module $moduleName" -ForegroundColor Yellow

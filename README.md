@@ -1,4 +1,4 @@
-# Steve's Scriptorium
+# Spellbook
 
 > M365 helpdesk toolkit for user lifecycle, tenant auditing, mailbox management, MFA, and Exchange.  
 > Built for MSP engineers. No fluff, no GUIs — just fast CLI commands that get the job done.
@@ -10,20 +10,20 @@
 ### From PowerShell Gallery (recommended)
 
 ```powershell
-Install-Module StevesScriptorium -Scope CurrentUser
+Install-Module Spellbook -Scope CurrentUser
 ```
 
 Import it in your session (or add to your `$PROFILE` to auto-load):
 
 ```powershell
-Import-Module StevesScriptorium
+Import-Module Spellbook
 ```
 
 ### From GitHub (clone and install)
 
 ```powershell
-git clone https://github.com/Big-Bronson/Steves-Scriptorium.git
-cd Steves-Scriptorium
+git clone https://github.com/Big-Bronson/Spellbook.git
+cd Spellbook
 .\Install.ps1
 ```
 
@@ -34,9 +34,9 @@ cd Steves-Scriptorium
 ## Usage
 
 ```powershell
-toolkit                   # list all commands
-toolkit new-user          # run a command by name
-toolkit 3                 # run a command by number
+invoke                   # list all commands
+invoke new-user          # run a command by name
+invoke 3                 # run a command by number
 ```
 
 ---
@@ -47,63 +47,63 @@ toolkit 3                 # run a command by number
 
 | Command | Description |
 |---|---|
-| `toolkit new-user` | Create a new M365 user and assign groups |
-| `toolkit offboard-user` | Full offboarding — block, wipe, convert mailbox, export log |
-| `toolkit set-userlicence` | Assign or remove a licence from a user |
+| `invoke new-user` | Create a new M365 user and assign groups |
+| `invoke offboard-user` | Full offboarding — block, wipe, convert mailbox, export log |
+| `invoke set-userlicence` | Assign or remove a licence from a user |
 
 ### User Reports & Auditing
 
 | Command | Description |
 |---|---|
-| `toolkit get-userreport` | Full profile dump for a single user |
-| `toolkit get-allusers` | All users with licences and last login |
-| `toolkit get-inactiveusers` | Users with no recent mailbox activity |
-| `toolkit get-mfaaudit` | All users and their MFA registration status |
-| `toolkit get-guestaudit` | Guest accounts with invite status and age |
-| `toolkit get-signinlogs` | Recent sign-in events for a user |
+| `invoke get-userreport` | Full profile dump for a single user |
+| `invoke get-allusers` | All users with licences and last login |
+| `invoke get-inactiveusers` | Users with no recent mailbox activity |
+| `invoke get-mfaaudit` | All users and their MFA registration status |
+| `invoke get-guestaudit` | Guest accounts with invite status and age |
+| `invoke get-signinlogs` | Recent sign-in events for a user |
 
 ### Tenant Health
 
 | Command | Description |
 |---|---|
-| `toolkit get-tenantreport` | Full tenant snapshot — licences, MFA gaps, admin roles, sync status, service health |
+| `invoke get-tenantreport` | Full tenant snapshot — licences, MFA gaps, admin roles, sync status, service health |
 
 ### Mailbox & Exchange
 
 | Command | Description |
 |---|---|
-| `toolkit check-mailflow` | Trace message delivery for a sender/recipient pair |
-| `toolkit get-sharedmailboxaudit` | Shared mailboxes with delegates, size, licence status |
-| `toolkit set-forwarding` | Enable SMTP forwarding on a mailbox |
-| `toolkit remove-forwarding` | Remove SMTP forwarding from a mailbox |
-| `toolkit get-mailboxperms` | Who has delegated access (Full Access, Send As) to a mailbox |
-| `toolkit get-userperms` | Which mailboxes a user has delegated access to |
-| `toolkit add-mailboxperms` | Grant Full Access and/or Send As on a mailbox |
-| `toolkit disable-autocalevents` | Disable "Events from email" tenant-wide (requires typing tenant domain to confirm) |
+| `invoke check-mailflow` | Trace message delivery for a sender/recipient pair |
+| `invoke get-sharedmailboxaudit` | Shared mailboxes with delegates, size, licence status |
+| `invoke set-forwarding` | Enable SMTP forwarding on a mailbox |
+| `invoke remove-forwarding` | Remove SMTP forwarding from a mailbox |
+| `invoke get-mailboxperms` | Who has delegated access (Full Access, Send As) to a mailbox |
+| `invoke get-userperms` | Which mailboxes a user has delegated access to |
+| `invoke add-mailboxperms` | Grant Full Access and/or Send As on a mailbox |
+| `invoke disable-autocalevents` | Disable "Events from email" tenant-wide (requires typing tenant domain to confirm) |
 
 ### Groups
 
 | Command | Description |
 |---|---|
-| `toolkit get-groupmembers` | List all members of a group with CSV export |
+| `invoke get-groupmembers` | List all members of a group with CSV export |
 
 
 ### MFA & Auth
 
 | Command | Description |
 |---|---|
-| `toolkit get-smsmfa` | Show SMS/phone MFA methods registered for a user |
-| `toolkit set-smsmfa` | Update the phone number on an existing SMS MFA method |
-| `toolkit add-smsmfa` | Register a new SMS/phone MFA method for a user |
-| `toolkit add-tap` | Create a Temporary Access Pass (one-time, 60 min default) |
-| `toolkit remove-taps` | Remove all Temporary Access Passes for a user |
+| `invoke get-smsmfa` | Show SMS/phone MFA methods registered for a user |
+| `invoke set-smsmfa` | Update the phone number on an existing SMS MFA method |
+| `invoke add-smsmfa` | Register a new SMS/phone MFA method for a user |
+| `invoke add-tap` | Create a Temporary Access Pass (one-time, 60 min default) |
+| `invoke remove-taps` | Remove all Temporary Access Passes for a user |
 
 ### System
 
 | Command | Description |
 |---|---|
-| `toolkit kill-graph` | Disconnect the current Microsoft Graph session |
-| `toolkit inherit-permissions` | Reset NTFS folder permissions to inherited; optionally strip explicit ACEs |
+| `invoke kill-graph` | Disconnect the current Microsoft Graph session |
+| `invoke inherit-permissions` | Reset NTFS folder permissions to inherited; optionally strip explicit ACEs |
 
 
 ### Planned
@@ -157,9 +157,9 @@ Each script connects itself and prompts for auth. The Graph scopes required vary
 ## Repo Structure
 
 ```
-StevesScriptorium/
-├── StevesScriptorium.psm1   # Module root — loads all scripts, exposes toolkit()
-├── StevesScriptorium.psd1   # Module manifest — version, dependencies, PS Gallery metadata
+Spellbook/
+├── Spellbook.psm1   # Module root — loads all scripts, exposes invoke()
+├── Spellbook.psd1   # Module manifest — version, dependencies, PS Gallery metadata
 ├── Install.ps1              # Bootstrap installer (clone → run this)
 ├── Publish.ps1              # PS Gallery publisher
 ├── Public/                  # All user-facing scripts (one per command)
@@ -173,7 +173,7 @@ StevesScriptorium/
 
 ## Publishing a New Version
 
-1. Update `ModuleVersion` in `StevesScriptorium.psd1`
+1. Update `ModuleVersion` in `Spellbook.psd1`
 2. Update `ReleaseNotes` in the manifest
 3. Move CHANGELOG `[Unreleased]` content into a dated `[x.y.z]` section
 4. Commit and push to GitHub (clean tree on `main` is required)
@@ -187,7 +187,7 @@ StevesScriptorium/
 `Publish.ps1` runs pre-flight checks (manifest validation, parse-check of all
 `Public/*.ps1`, `FunctionsToExport` sync, clean git tree, populated
 `[Unreleased]`). The PS Gallery API key is read from Windows Credential Manager
-(target `PSGallery-StevesScriptorium`) with `$env:PSGALLERY_API_KEY` as
+(target `PSGallery-Spellbook`) with `$env:PSGALLERY_API_KEY` as
 fallback.
 
 ---
@@ -197,8 +197,8 @@ fallback.
 Adding a new command:
 
 1. Create `Public/your-command-name.ps1`
-2. Add the entry to the `$commands` ordered hashtable in `StevesScriptorium.psm1`
-3. Add it to `FunctionsToExport` in `StevesScriptorium.psd1`
+2. Add the entry to the `$commands` ordered hashtable in `Spellbook.psm1`
+3. Add it to `FunctionsToExport` in `Spellbook.psd1`
 4. Add a row to the README command table
 5. Bump the module version
 

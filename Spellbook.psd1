@@ -1,4 +1,4 @@
-# StevesScriptorium.psd1
+# Spellbook.psd1
 # -----------------------------------------------------------------------------
 # Module manifest. Bump ModuleVersion with every release. The Publish.ps1
 # preflight cross-checks this file against Public/*.ps1 and aborts on drift
@@ -6,7 +6,7 @@
 
 @{
     # Module identity
-    RootModule        = 'StevesScriptorium.psm1'
+    RootModule        = 'Spellbook.psm1'
     ModuleVersion     = '1.1.0'
     GUID              = '31541981-5235-4afe-bf0d-19c7b5fb438c'
     Author            = 'Stephen Vella'
@@ -18,7 +18,7 @@
     # What this module exports — must match Public/*.ps1 files exactly.
     # Publish.ps1 cross-checks this list and aborts on drift.
     FunctionsToExport = @(
-        'toolkit'
+        'invoke'
         'new-user'
         'offboard-user'
         'set-userlicence'
@@ -113,8 +113,8 @@
     PrivateData = @{
         PSData = @{
             Tags         = @('M365', 'Microsoft365', 'Exchange', 'Helpdesk', 'MSP', 'Entra', 'PowerShell', 'Toolkit', 'MFA', 'Offboarding', 'Onboarding')
-            LicenseUri   = 'https://github.com/Big-Bronson/Steves-Scriptorium/blob/main/LICENSE'
-            ProjectUri   = 'https://github.com/Big-Bronson/Steves-Scriptorium'
+            LicenseUri   = 'https://github.com/Big-Bronson/Spellbook/blob/main/LICENSE'
+            ProjectUri   = 'https://github.com/Big-Bronson/Spellbook'
             ReleaseNotes = '1.1.0 — Added: kill-graph, set/remove-forwarding, get/add-mailboxperms, get-userperms, get/set/add-smsmfa, add-tap, remove-taps, disable-autocalevents, inherit-permissions, Pester smoke tests + GitHub Actions verify workflow. Changed: check-mailflow migrated to Get-MessageTraceV2/Get-MessageTraceDetailV2 (V1 cmdlets are deprecated by Microsoft); RequiredModules expanded to declare every Graph submodule actually used (.Authentication, .Users.Actions, .Groups, .Identity.DirectoryManagement, .Reports). Fixed: offboard-user no longer silently swallows per-item failures during group/role/MFA cleanup; kill-graph no longer throws when no Graph context exists; get-allusers no longer aborts on accounts with null UPN.'
         }
     }

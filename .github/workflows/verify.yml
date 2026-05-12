@@ -1,6 +1,6 @@
 # .github/workflows/verify.yml
 # -----------------------------------------------------------------------------
-# Static-only verification for StevesScriptorium. Runs Pester smoke tests and
+# Static-only verification for Spellbook. Runs Pester smoke tests and
 # PSScriptAnalyzer on every push to main and every PR (see ADR-0014 for why
 # we deliberately don't exercise live Graph/Exchange in CI).
 #
@@ -13,7 +13,7 @@
 # periodically), the build would silently break, and Test-ModuleManifest
 # (called inside the Pester suite) would fail to import the manifest's
 # RequiredModules list. V2 (this version) installs every module declared in
-# StevesScriptorium.psd1's RequiredModules explicitly, so the CI behaviour
+# Spellbook.psd1's RequiredModules explicitly, so the CI behaviour
 # is reproducible regardless of runner image. See also ADR-0008
 # (RequiredModules pinning) and ADR-0022 (explicit Graph submodule pinning).
 
@@ -38,7 +38,7 @@ jobs:
 
       # Install every module listed in the manifest's RequiredModules so that
       # Test-ModuleManifest (invoked by tests/Module.Tests.ps1) can import
-      # them. The list MUST stay in sync with StevesScriptorium.psd1's
+      # them. The list MUST stay in sync with Spellbook.psd1's
       # RequiredModules. Each entry is needed because:
       #   - ExchangeOnlineManagement                 — Get-Mailbox, Get-MessageTraceV2, etc.
       #   - Microsoft.Graph.Authentication           — Connect-MgGraph / Get-MgContext / Disconnect-MgGraph

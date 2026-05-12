@@ -24,7 +24,7 @@ But the shipped scripts collectively use cmdlets from at least seven Graph submo
 - `Microsoft.Graph.Identity.DirectoryManagement` — `Get-MgOrganization`, `Get-MgSubscribedSku`, `Get-MgDirectoryRole`, `Get-MgDirectoryRoleMember`, `Remove-MgDirectoryRoleMemberByRef`. Used by `disable-autocalevents`, `get-tenantreport`, `get-allusers`, `set-userlicence`, `offboard-user`, `get-userreport`.
 - `Microsoft.Graph.Reports` — `Get-MgAuditLogSignIn`, `Get-MgServiceAnnouncementIssue`. Used by `get-signinlogs`, `get-tenantreport`.
 
-Operators installing the module from PS Gallery via `Install-Module StevesScriptorium` would get only the three declared submodules (plus their transitive `Microsoft.Graph.Authentication`). On first run of any script that called a cmdlet from an undeclared submodule, they'd hit "command not recognised". The error is unhelpful — there's no hint that the resolution is to install one more submodule, and no obvious mapping from cmdlet to submodule for someone who isn't already familiar with the SDK split.
+Operators installing the module from PS Gallery via `Install-Module Spellbook` would get only the three declared submodules (plus their transitive `Microsoft.Graph.Authentication`). On first run of any script that called a cmdlet from an undeclared submodule, they'd hit "command not recognised". The error is unhelpful — there's no hint that the resolution is to install one more submodule, and no obvious mapping from cmdlet to submodule for someone who isn't already familiar with the SDK split.
 
 The same gap also affected CI: `Test-ModuleManifest` (called inside the Pester suite) imports `RequiredModules`, and the GitHub-hosted runner happened to ship with a working set of Graph submodules pre-installed. The build worked — but it would silently break the next time Microsoft refreshed the runner image. ADR-0014's "static-only CI" promise depends on the manifest faithfully declaring every dependency.
 
@@ -32,7 +32,7 @@ The same gap also affected CI: `Test-ModuleManifest` (called inside the Pester s
 
 ## Decision
 
-The `RequiredModules` block in `StevesScriptorium.psd1` now declares every Graph submodule used anywhere in `Public/*.ps1`:
+The `RequiredModules` block in `Spellbook.psd1` now declares every Graph submodule used anywhere in `Public/*.ps1`:
 
 ```
 ExchangeOnlineManagement                       (>= 3.7.0)
@@ -57,15 +57,15 @@ The `.github/workflows/verify.yml` test job installs every module on the list ex
 
 **Why explicit submodules and not the `Microsoft.Graph` meta-module?**
 
-The meta-module pulls in **every** Graph submodule — currently around 40 of them. Most of those won't ever be used by this toolkit. The cost of taking the meta-module is:
+The meta-module pulls in **every** Graph submodule — currently around 40 of them. Most of those won't ever be used by Spellbook. The cost of taking the meta-module is:
 
-- **Install size and time.** Installing the meta-module takes minutes and several hundred MB on a fresh PowerShell host; installing the seven submodules we actually use takes seconds and tens of MB. Engineers run `Install-Module StevesScriptorium` from a fresh shell more often than you'd expect (new laptop, jump box, build agent), and the difference is operator-visible.
+- **Install size and time.** Installing the meta-module takes minutes and several hundred MB on a fresh PowerShell host; installing the seven submodules we actually use takes seconds and tens of MB. Engineers run `Install-Module Spellbook` from a fresh shell more often than you'd expect (new laptop, jump box, build agent), and the difference is operator-visible.
 - **Surface area for security advisories and version skew.** A vulnerability in any submodule of the meta-package becomes a problem we have to triage, even when we don't use the affected cmdlets.
 - **Granularity of version pinning.** Pinning the meta-module pins every submodule together. We want to bump (say) `Microsoft.Graph.Reports` independently when a service-announcement cmdlet shape changes, without simultaneously taking on a new `Microsoft.Graph.DeviceManagement.Beta` version.
 
 **Why not pin upper bounds?**
 
-Same reasoning as ADR-0008: the SDK is on a steady release cadence and we want to allow newer versions automatically. Lockstep upper bounds would create an upgrade burden disproportionate to the risk. If a future SDK release introduces a breaking change that affects this toolkit, we add an upper bound at that point and document it in a follow-up ADR.
+Same reasoning as ADR-0008: the SDK is on a steady release cadence and we want to allow newer versions automatically. Lockstep upper bounds would create an upgrade burden disproportionate to the risk. If a future SDK release introduces a breaking change that affects Spellbook, we add an upper bound at that point and document it in a follow-up ADR.
 
 **Why declare `Microsoft.Graph.Authentication` explicitly when it's a transitive dependency of every other Graph submodule?**
 
@@ -139,7 +139,7 @@ For each declared submodule, the cmdlets across `Public/*.ps1` that drive the re
 
 ## Related files
 
-- `StevesScriptorium.psd1` — `RequiredModules` block (keep the inline crib comments in sync with this ADR)
+- `Spellbook.psd1` — `RequiredModules` block (keep the inline crib comments in sync with this ADR)
 - `.github/workflows/verify.yml` — test job installs the same list explicitly (the `$modules` array must stay in sync with the manifest)
 - `CHANGELOG.md` — entry under `[1.1.0]` → `### Changed`
 - `README.md` — module-requirements list (kept in step with the manifest, but the README is allowed to be slightly looser since it's prose)

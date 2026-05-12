@@ -8,7 +8,7 @@
 
 ## Context
 
-`StevesScriptorium.psd1` declares three `RequiredModules` entries with `ModuleVersion` constraints:
+`Spellbook.psd1` declares three `RequiredModules` entries with `ModuleVersion` constraints:
 
 ```powershell
 RequiredModules = @(
@@ -34,7 +34,7 @@ The three other Microsoft.Graph sub-modules (`Microsoft.Graph.Authentication`, `
 
 **Flexibility for engineers on managed machines:** MSP engineers often work on machines where IT has already installed a newer version of `ExchangeOnlineManagement` or the Graph SDK. Exact-version pinning would cause side-by-side installation of an older version, or would refuse to load if the exact version is not present. Minimum-version pinning lets the module use whatever compatible version is already installed.
 
-**Module update propagation:** Microsoft releases updates to both `ExchangeOnlineManagement` and the Graph SDK frequently. Exact pinning would require a module release every time a dependency updates, even if nothing changed in `StevesScriptorium` itself. Minimum pinning lets dependency updates flow in without forcing a patch release.
+**Module update propagation:** Microsoft releases updates to both `ExchangeOnlineManagement` and the Graph SDK frequently. Exact pinning would require a module release every time a dependency updates, even if nothing changed in `Spellbook` itself. Minimum pinning lets dependency updates flow in without forcing a patch release.
 
 **Major-version floors:** EXO v3 introduced the modern REST-based cmdlets (v2 used RPS). Graph v2 changed authentication and property handling significantly. Floors at these boundaries prevent the module from loading against versions that are genuinely incompatible.
 
@@ -42,7 +42,7 @@ The three other Microsoft.Graph sub-modules (`Microsoft.Graph.Authentication`, `
 
 ## Alternatives considered
 
-**Exact version pinning (`RequiredVersion`)** — Prevents breakage from unexpected upstream changes but causes side-by-side installation sprawl and requires a `StevesScriptorium` release for every dependency patch. Too rigid for a fast-moving ecosystem.
+**Exact version pinning (`RequiredVersion`)** — Prevents breakage from unexpected upstream changes but causes side-by-side installation sprawl and requires a `Spellbook` release for every dependency patch. Too rigid for a fast-moving ecosystem.
 
 **No version constraint at all** — Would allow loading against EXO v1 or Graph v1, which have different cmdlet names and behaviours. Some scripts would fail silently with confusing errors. Minimum floors are necessary.
 
@@ -59,5 +59,5 @@ The three other Microsoft.Graph sub-modules (`Microsoft.Graph.Authentication`, `
 
 ## Related files
 
-- `StevesScriptorium.psd1` — `RequiredModules` block
+- `Spellbook.psd1` — `RequiredModules` block
 - `Install.ps1` — the fuller list of modules installed at setup time

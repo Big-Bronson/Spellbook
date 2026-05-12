@@ -8,7 +8,7 @@
 
 ## Context
 
-Some commands in the toolkit make changes that affect every mailbox in the tenant — they are not reversible with a single undo, and running them against the wrong tenant (e.g. an engineer who is connected to a client tenant they did not intend) could cause widespread disruption. A simple `y/n` prompt is insufficient because it can be answered without the engineer consciously verifying which tenant they are operating against. `disable-autocalevents` was the first command in this category.
+Some Spellbook commands make changes that affect every mailbox in the tenant — they are not reversible with a single undo, and running them against the wrong tenant (e.g. an engineer who is connected to a client tenant they did not intend) could cause widespread disruption. A simple `y/n` prompt is insufficient because it can be answered without the engineer consciously verifying which tenant they are operating against. `disable-autocalevents` was the first command in this category.
 
 ---
 

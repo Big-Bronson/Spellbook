@@ -61,5 +61,5 @@ The API key is read from **Windows Credential Manager** via a `Get-StoredSecret`
 ## Related files
 
 - `Publish.ps1` — full implementation
-- `StevesScriptorium.psd1` — the manifest validated and sync-checked by Publish.ps1
+- `Spellbook.psd1` — the manifest validated and sync-checked by Publish.ps1
 - `CHANGELOG.md` — the file whose `[Unreleased]` section must be populated

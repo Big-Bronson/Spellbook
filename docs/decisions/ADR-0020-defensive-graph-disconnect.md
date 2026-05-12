@@ -55,7 +55,7 @@ Write-Host "Disconnected from Microsoft Graph." -ForegroundColor Green
 
 **`try { Disconnect-MgGraph } catch { }` with no explicit guard.** Works for the no-session case but, like the option above, also swallows real failures. Ruled out.
 
-**Move the script to `Private/` as a helper rather than exposing it as a `toolkit` command.** The script is genuinely useful directly — engineers run it interactively far more often than other scripts call it. Keeping it in `Public/` is correct. (No `Private/` directory exists yet anyway — see ADR-0003 for the per-script-self-contained model.)
+**Move the script to `Private/` as a helper rather than exposing it as a `invoke` command.** The script is genuinely useful directly — engineers run it interactively far more often than other scripts call it. Keeping it in `Public/` is correct. (No `Private/` directory exists yet anyway — see ADR-0003 for the per-script-self-contained model.)
 
 ---
 
@@ -110,7 +110,7 @@ The `catch` block prints the failure in red. The operator's recourse is to re-ru
 ## Related files
 
 - `Public/kill-graph.ps1` — the rewritten script
-- `StevesScriptorium.psd1` — `Microsoft.Graph.Authentication` declared in `RequiredModules` (per ADR-0022)
+- `Spellbook.psd1` — `Microsoft.Graph.Authentication` declared in `RequiredModules` (per ADR-0022)
 - `CHANGELOG.md` — entry under `[1.1.0]` → `### Fixed`
 - ADR-0003 — per-script self-contained connections (why this stays in `Public/` and isn't promoted to a helper)
 - ADR-0016 — `return` not `exit` in public scripts (why both branches use `return`)

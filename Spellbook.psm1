@@ -1,5 +1,5 @@
-# StevesScriptorium.psm1
-# Module root. Dot-sources all Public scripts and wires up the toolkit() command.
+# Spellbook.psm1
+# Module root. Dot-sources all Public scripts and wires up the invoke() command.
 
 $PublicPath  = Join-Path $PSScriptRoot "Public"
 $PrivatePath = Join-Path $PSScriptRoot "Private"
@@ -23,18 +23,18 @@ Get-ChildItem -Path $PublicPath -Filter "*.ps1" | ForEach-Object {
     $PublicFunctions[$funcName] = $scriptPath
 }
 
-# Store the function map for the toolkit command to reference
+# Store the function map for the invoke command to reference
 $script:ToolkitFunctions = $PublicFunctions
 
 # -----------------------------------------------------------------
-# toolkit() — the CLI dispatcher
+# invoke() — the CLI dispatcher
 # Usage:
-#   toolkit              → print all commands
-#   toolkit new-user     → run new-user.ps1
-#   toolkit 3            → run command at position 3
+#   invoke              → print all commands
+#   invoke new-user     → run new-user.ps1
+#   invoke 3            → run command at position 3
 # -----------------------------------------------------------------
 
-function global:toolkit {
+function global:invoke {
     param([string]$Command)
 
     # Menu must match Public/*.ps1 — keep this list honest. Ghost commands
@@ -95,8 +95,8 @@ function global:toolkit {
 
     if (-not $Command) {
         Write-Host ""
-        Write-Host "  Steve's Scriptorium" -ForegroundColor Cyan
-        Write-Host "  toolkit <command>  |  toolkit <number>" -ForegroundColor DarkGray
+        Write-Host "  Spellbook" -ForegroundColor Cyan
+        Write-Host "  invoke <command>  |  invoke <number>" -ForegroundColor DarkGray
         Write-Host ""
         $i = 1
         foreach ($key in $commands.Keys) {
@@ -116,7 +116,7 @@ function global:toolkit {
         $index = [int]$Command
         $keys  = @($commands.Keys)
         if ($index -lt 1 -or $index -gt $keys.Count) {
-            Write-Host "  No command at index $index. Run 'toolkit' to see the list." -ForegroundColor Red
+            Write-Host "  No command at index $index. Run 'invoke' to see the list." -ForegroundColor Red
             return
         }
         $Command = $keys[$index - 1]
@@ -133,6 +133,6 @@ function global:toolkit {
         }
     } else {
         Write-Host "  Unknown command: '$Command'" -ForegroundColor Red
-        Write-Host "  Run 'toolkit' to see available commands." -ForegroundColor DarkGray
+        Write-Host "  Run 'invoke' to see available commands." -ForegroundColor DarkGray
     }
 }

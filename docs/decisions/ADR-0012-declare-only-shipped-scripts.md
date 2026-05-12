@@ -11,15 +11,15 @@
 The 1.0.0 manifest declared 30 entries in `FunctionsToExport` — the full intended command surface including all planned commands. Only 13 of those had matching scripts in `Public/`. This caused two concrete failures:
 
 1. The Publish.ps1 sync-check (added in the 1.0.1 cycle) immediately aborted because declared functions had no matching scripts.
-2. Users who ran `toolkit 18` (for example) got a "Script not found" error — the command was listed in the menu but had no implementation.
+2. Users who ran `invoke 18` (for example) got a "Script not found" error — the command was listed in the menu but had no implementation.
 
-The 1.0.1 release trimmed `FunctionsToExport` to the 13 scripts that existed, removed the 17 phantom entries from the toolkit menu, and moved all unimplemented commands to a "Planned" section in `README.md`.
+The 1.0.1 release trimmed `FunctionsToExport` to the 13 scripts that existed, removed the 17 phantom entries from the Spellbook menu, and moved all unimplemented commands to a "Planned" section in `README.md`.
 
 ---
 
 ## Decision
 
-`FunctionsToExport` in `StevesScriptorium.psd1` contains **only the names of scripts that currently exist in `Public/`**, plus `toolkit` (which is defined in the psm1, not as a script). When a new command is implemented, it is added to `FunctionsToExport` in the same commit that adds the script. Planned-but-unimplemented commands live only in the README.
+`FunctionsToExport` in `Spellbook.psd1` contains **only the names of scripts that currently exist in `Public/`**, plus `invoke` (which is defined in the psm1, not as a script). When a new command is implemented, it is added to `FunctionsToExport` in the same commit that adds the script. Planned-but-unimplemented commands live only in the README.
 
 The Publish.ps1 sync-check and the Pester `FunctionsToExport vs Public/` tests both enforce this mechanically.
 
@@ -44,14 +44,14 @@ The "Planned" README section serves the same communication purpose — users can
 ## Consequences
 
 - The sync-check in Publish.ps1 and the Pester tests provide a hard enforcement mechanism — it is impossible to accidentally publish a ghost function if the checks pass.
-- When implementing a planned command, the contributor must add it to `FunctionsToExport`, the `$commands` hashtable in `StevesScriptorium.psm1`, the README command table, and remove it from the README "Planned" list. The CLAUDE.md "How to add a new command" checklist captures this.
+- When implementing a planned command, the contributor must add it to `FunctionsToExport`, the `$commands` hashtable in `Spellbook.psm1`, the README command table, and remove it from the README "Planned" list. The CLAUDE.md "How to add a new command" checklist captures this.
 - The README "Planned" section may drift from what is actually planned — it is a best-effort list, not a contract.
 
 ---
 
 ## Related files
 
-- `StevesScriptorium.psd1` — `FunctionsToExport`
+- `Spellbook.psd1` — `FunctionsToExport`
 - `Publish.ps1` — sync-check step 3
 - `tests/Module.Tests.ps1` — `FunctionsToExport vs Public/` describe block
 - `README.md` — "Planned" section

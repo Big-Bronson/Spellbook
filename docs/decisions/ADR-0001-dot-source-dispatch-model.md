@@ -8,15 +8,15 @@
 
 ## Context
 
-The toolkit needs a CLI dispatcher that can run any of 20+ commands by name or number. Commands need access to variables and connection state established in the same session. The audience is MSP engineers who work interactively in a terminal — speed of feedback and seamless session continuation matter more than isolation.
+The invoke needs a CLI dispatcher that can run any of 20+ commands by name or number. Commands need access to variables and connection state established in the same session. The audience is MSP engineers who work interactively in a terminal — speed of feedback and seamless session continuation matter more than isolation.
 
 ---
 
 ## Decision
 
-`toolkit()` dispatches commands by **dot-sourcing** (`.$scriptPath`) the target `Public/*.ps1` file inside the caller's PowerShell session, not by invoking it as a subprocess or child scope.
+`invoke()` dispatches commands by **dot-sourcing** (`.$scriptPath`) the target `Public/*.ps1` file inside the caller's PowerShell session, not by invoking it as a subprocess or child scope.
 
-The psm1 also dot-sources all `Public/*.ps1` at module load time to register each file as a named global function, so commands can also be called directly by name (e.g. `get-userreport`) without going through `toolkit`.
+The psm1 also dot-sources all `Public/*.ps1` at module load time to register each file as a named global function, so commands can also be called directly by name (e.g. `get-userreport`) without going through `invoke`.
 
 ---
 
@@ -52,5 +52,5 @@ For a helpdesk tool where an engineer runs 3-4 commands per support call, sessio
 
 ## Related files
 
-- `StevesScriptorium.psm1` — dot-sources all `Public/*.ps1` at load time; `toolkit()` dispatches via dot-source at runtime
+- `Spellbook.psm1` — dot-sources all `Public/*.ps1` at load time; `invoke()` dispatches via dot-source at runtime
 - `Public/*.ps1` — every command script

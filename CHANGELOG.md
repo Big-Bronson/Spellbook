@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to StevesScriptorium will be documented here.
+All notable changes to Spellbook will be documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
@@ -51,20 +51,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - `offboard-user` group/role/MFA cleanup steps now log per-item failures as their own CSV rows (with status `FAILED`) rather than silently swallowing exceptions and reporting the attempted count as the "OK" count. Audit-log integrity restored. See ADR-0021.
 - `kill-graph` now no-ops cleanly when no Microsoft Graph session is active, rather than throwing a confusing red exception. See ADR-0020.
 - `get-allusers` no longer aborts on accounts with a null `UserPrincipalName` (orphan / partially-provisioned). These now appear in the export with note `"No UPN — orphan account"`.
-- `toolkit-profile.ps1` ghost commands removed (`reset-password`, `rename-pc`, `get-licensedusers`, `get-archive`, `enable-autoexpand`) — they had no matching `.ps1` and produced "Script not found" when invoked.
+- `invoke-profile.ps1` ghost commands removed (`reset-password`, `rename-pc`, `get-licensedusers`, `get-archive`, `enable-autoexpand`) — they had no matching `.ps1` and produced "Script not found" when invoked.
 
 ---
 
 ## [1.0.1] — 2026-05-08
 
 ### Fixed
-- `toolkit` command lookup now uses `.Contains()` instead of `.ContainsKey()` on `[ordered]` hashtables — fixes `InvalidOperation` crash when running any named command
-- `LicenseUri` and `ProjectUri` in the manifest pointed at `Big-Bronson/StevesScriptorium` (404). Corrected to `Big-Bronson/Steves-Scriptorium`. Same fix applied to `README.md` clone URL and `Install.ps1` usage example.
+- `invoke` command lookup now uses `.Contains()` instead of `.ContainsKey()` on `[ordered]` hashtables — fixes `InvalidOperation` crash when running any named command
+- `LicenseUri` and `ProjectUri` in the manifest pointed at `Big-Bronson/Spellbook` (404). Corrected to `Big-Bronson/Spellbook`. Same fix applied to `README.md` clone URL and `Install.ps1` usage example.
 - `Publish.ps1` string interpolation fixes (GUID error path, API key fallback)
 
 ### Changed
 - `FunctionsToExport` trimmed to match the scripts that actually ship in `Public/`. The 1.0.0 manifest declared 30 functions; 17 had no matching script. Removed entries: `reset-password`, `get-userperms`, `get-mailboxperms`, `add-mailboxperms`, `set-forwarding`, `remove-forwarding`, `get-archive`, `enable-autoexpand`, `disable-autocalevents`, `get-smsmfa`, `set-smsmfa`, `add-smsmfa`, `add-tap`, `remove-taps`, `inherit-permissions`, `kill-graph`. These are tracked in the README "Planned" section and will return as they ship.
-- `toolkit` menu trimmed to match. Empty sections (MFA & Auth, System) removed; `get-licensedusers` ghost entry removed.
+- `invoke` menu trimmed to match. Empty sections (MFA & Auth, System) removed; `get-licensedusers` ghost entry removed.
 - `Publish.ps1` rewritten with pre-flight checks: manifest validation, parse-check of all Public scripts, `FunctionsToExport` sync check, clean git tree enforcement, CHANGELOG presence check, API key read from Windows Credential Manager (with `$env:PSGALLERY_API_KEY` fallback).
 - README publishing instructions updated to match the new `Publish.ps1` interface (no `-ApiKey` parameter).
 
@@ -78,7 +78,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Added
 - Initial release
-- `toolkit` CLI dispatcher with numeric and named command lookup
+- `invoke` CLI dispatcher with numeric and named command lookup
 - User lifecycle: `new-user`, `offboard-user`, `reset-password`, `set-userlicence`
 - User reports: `get-userreport`, `get-allusers`, `get-mfaaudit`, `get-guestaudit`, `get-signinlogs`
 - Tenant health: `get-tenantreport`
