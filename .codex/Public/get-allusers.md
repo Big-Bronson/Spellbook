@@ -1,29 +1,30 @@
-## Public\get-allusers.ps1
+## Public/get-allusers.ps1
 
 ### What This File Does
-
-This script generates a comprehensive inventory of all users in an M365 tenant, displaying their display name, UPN, assigned licenses, last mailbox login time, and status notes. The results are printed to the console as a formatted table and exported to a timestamped CSV file on the user's desktop. It requires connections to both Microsoft Graph (for user and license data) and Exchange Online (for mailbox activity metrics).
+This script produces a tenant-wide user inventory report by pulling user metadata from Microsoft Graph, license assignments from subscription SKUs, and mailbox activity timestamps from Exchange Online, then displays the results as a formatted table and exports them to a CSV file on the user's Desktop.
 
 ### Why It Exists
-
-M365 helpdeks need a quick, single-run report to answer questions like "who hasn't logged in in six months?" or "which users have no licenses assigned?" without requiring Entra ID Premium licenses (which gate access to sign-in logs). By combining Graph's user directory with Exchange mailbox statistics—a cheaper, more universally available data source—the script provides the essentials of a user audit report that works in any tenant.
+Organizations need a simple way to audit all users in their tenant without requiring Entra ID P1 or P2 licenses. The script trades the rich activity data those premium tiers provide for a practical alternative: Exchange mailbox statistics, which are available in all Exchange Online deployments. This fills a gap for cost-conscious or licensing-constrained environments that still need visibility into who exists in the directory and when they last logged in.
 
 ### What It Protects Against
-
-**Null-UPN orphan accounts crashing the entire export.** During the initial release, the script would call `.ToLower()` on every user's UPN without checking whether the UPN field existed. Orphaned or partially-provisioned directory objects (rare but real, from failed provisioning or incomplete deletions) have no UPN assigned. When the script hit such an account, it threw a NullReferenceException and aborted, killing the report for the entire tenant. The fix (committed in 1.1.0) guards the UPN lookup with an explicit null check and surfaces orphans in the export with the note "No UPN — orphan account" rather than crashing. The script deliberately does not skip orphans because surfacing them is exactly the point of a user inventory report.
+The script defends against a specific failure mode: orphaned or partially-provisioned directory accounts that lack a UPN (User Principal Name). Such accounts are rare but real—they result from failed provisioning workflows, incomplete deletions, or directory corruption. Without the null-check guard on `$user.UserPrincipalName`, the script would crash with a NullReferenceException when calling `.ToLower()` on a null value, aborting the entire export and leaving the operator with no report at all. Instead, the script surfaces these orphans in the output so they can be identified and remediated.
 
 ### Invariants
+- Exchange Online and Microsoft Graph connections must be available and authenticated before execution.
+- Every user returned by `Get-MgUser` must have at least a `DisplayName` field (the Graph API guarantees this).
+- The SKU lookup table must exist before license decoding begins; if `Get-MgSubscribedSku` returns nothing, unlicensed users will still process correctly.
+- Users without a UPN must never be dereferenced into the `$statsIndex` hashtable, or a null reference will occur.
+- The CSV export path must be writable; if `$env:USERPROFILE\Desktop` is inaccessible, the export will fail silently.
 
-- Both Exchange Online and Microsoft Graph connections must exist before the script runs (the script will attempt to establish them if they don't).
-- Every licensed SKU in the tenant must be retrievable via `Get-MgSubscribedSku` so that the SKU lookup table can map SKU IDs to human-readable product names.
-- Mailbox statistics must be queryable without time limits; the script uses `-ResultSize Unlimited` and assumes the query completes.
-- User UPNs (when present) must be case-insensitive matchable to mailbox statistics UPNs for the last-login lookup to work.
+### Key Patterns
+**Defensive Null Checking**: The UPN guard uses the same pattern twice—once when building the `$statsIndex` hashtable and again when looking up each user—to ensure consistency and prevent orphan accounts from crashing the script.
 
-### Evolution Notes
+**Lookup Table / Hashtable**: SKU IDs and mailbox stats are indexed as hashtables for O(1) lookup performance rather than repeated linear searches, improving performance as tenant size grows.
 
-This file was introduced in the initial release (2026-05-07) with a critical defensive gap: it did not handle accounts with missing UPN fields. When the 1.1.0 release shipped on 2026-05-11, it was patched to check for null UPN before attempting string operations, and to label such accounts as orphans rather than silently failing or misclassifying them. No other functional changes have been made. The extensive comments explaining the null-UPN guard were added at that time to document the fix and prevent future regressions.
+**Note Precedence**: The notes field uses an ordered if-elseif chain so that the most critical issue (missing UPN) is always reported, preventing less severe conditions (disabled account, no activity) from masking it.
+
+**Dual Output**: Results are both displayed to console and persisted to CSV with a timestamp in the filename, supporting both immediate inspection and archival.
 
 ### Change Log
-
-- 2026-05-11: Defensive fix—get-allusers no longer aborts on accounts with null UPN; orphans now surface in the export with the note "No UPN — orphan account".
-- 2026-05-07: Initial Release.
+- 2026-05-11: Release 1.1.0: V2 mailflow, expanded RequiredModules, audit-log integrity
+- 2026-05-07: Initial release (introduced orphan account null-check guard and dual-output pattern)

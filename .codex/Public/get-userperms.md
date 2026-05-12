@@ -1,22 +1,22 @@
-## Public\get-userperms.ps1
+## Public/get-userperms.ps1
 
 ### What This File Does
-When an MSP engineer needs to audit a specific user's mailbox delegation rights across an entire M365 tenant, this script performs a tenant-wide scan to answer: "What mailboxes can this person access, and how?" It collects two permission types (Full Access and Send As) and presents them in a simple formatted list, while showing real-time progress to warn the operator that the operation may take significant time on large tenants.
+This script audits which mailboxes in an Exchange Online tenant a specific user has been granted delegated access to. It scans every mailbox, checks for two permission types (Full Access and Send As), and reports back a categorized list of mailboxes where the target user holds either right.
 
 ### Why It Exists
-The reverse-lookup problem: while `Get-MailboxPermission` can tell you who has access to *one* mailbox, there's no native cmdlet that answers "which mailboxes does *this user* have access to?" An engineer troubleshooting access issues, auditing a departing employee's delegated rights, or validating a permission grant needed a fast way to scan the entire tenant without writing their own loop. This script automates that common investigation task and shields the operator from the cmdlet details.
+Exchange Online administrators need to understand the scope of access they've granted to users—both for security audits and for cleanup when users change roles or leave the organization. Rather than check each mailbox individually, this script automates the discovery across the entire tenant, making it practical to answer "what can this person access?" in seconds instead of hours.
 
 ### What It Protects Against
-**Non-existent users causing silent failures:** The script validates the UPN exists as a recipient before iterating all mailboxes, preventing the operator from waste time scanning thousands of mailboxes for a typo'd username. **Explicit Deny permissions being reported as grants:** The Full Access check explicitly filters out `Deny` entries so that negative permissions don't mislead the audit. **Missing Exchange Online session:** The script validates an active Exchange Online connection exists before attempting any cmdlet calls, preventing cryptic "no connection" errors mid-scan.
+The script validates that the input UPN belongs to an actual recipient before scanning begins, preventing wasted iteration over all mailboxes for a typo or nonexistent user. It also explicitly filters out deny entries when checking Full Access permissions, so that explicit denials (which override grants) are not misreported as positive access. The progress bar and upfront warning about tenant size protect operators from silent, mysterious hangs on large deployments.
 
 ### Invariants
-- Exchange Online PowerShell module must be installed and available
-- The input UPN must exist as a valid recipient object in the directory (validated before scan begins)
-- All mailboxes must be reachable via `Get-MailboxPermission` and `Get-RecipientPermission` (the script tolerates individual query failures with `-ErrorAction SilentlyContinue`)
-- The operator's account must have at least read permissions on mailbox delegation metadata across the tenant
+- Exchange Online must be connected (or connectable) when the script runs.
+- The input UPN must resolve to a valid recipient object, or the script exits early.
+- All mailboxes in the tenant must be enumerable via `Get-Mailbox -ResultSize Unlimited`.
+- Full Access and Send As are the only two permission types tracked; other delegation rights are ignored.
 
-### Evolution Notes
-This file was introduced in a single commit alongside two sibling scripts (`get-mailboxperms` and `add-mailboxperms`) as part of a coordinated "mailbox permissions family" feature. Since its introduction, it has not been modified—the implementation shipped in its final form.
+### Key Patterns
+**Early validation**: recipient existence is checked before any expensive iteration begins. **Progress feedback**: a live progress bar keeps the operator informed during the (potentially long) mailbox scan. **Dual-list accumulation**: two separate `System.Collections.Generic.List[string]` collections isolate Full Access results from Send As results, enabling separate reporting. **Silent error suppression**: `-ErrorAction SilentlyContinue` on permission lookups allows the loop to continue even if a mailbox is temporarily unavailable or the permission query fails for one mailbox.
 
 ### Change Log
-- 2026-05-08: Initial commit—added get-userperms to scan all mailboxes and report Full Access and Send As permissions granted to a specified user.
+- 2026-05-08: Initial addition as part of mailbox permissions family (get-mailboxperms, get-userperms, add-mailboxperms).

@@ -1,26 +1,34 @@
-## Public\remove-taps.ps1
+## Public/remove-taps.ps1
 
 ### What This File Does
-When an MSP engineer runs this script, it prompts for a user's UPN, retrieves all active Temporary Access Pass (TAP) authentication methods from that user's M365 account, displays their creation and expiry times, asks for confirmation, and then removes every TAP in a single operation. This is a destructive action — once confirmed, all TAPs for that user are permanently revoked.
+This script identifies all active Temporary Access Pass (TAP) authentication methods assigned to a specified user in Microsoft Entra ID, displays their creation and expiry details, and removes them upon confirmation. It operates as an interactive operator tool that connects to Microsoft Graph, queries the target user's TAP inventory, and deletes selected credentials.
 
 ### Why It Exists
-Temporary Access Passes are intended as emergency one-time credentials that expire naturally after a set period. However, in incident response scenarios — particularly after a phishing attack or credential compromise — waiting for natural expiry is unacceptable. An attacker who obtained a user's compromised credentials could potentially use an active TAP if they knew the user's UPN and the TAP value. This script allows a helpdesk operator to immediately and completely revoke all TAPs without manual Graph API calls or portal navigation, closing that attack vector in seconds.
+Temporary Access Passes are time-limited authentication credentials used for emergency access or onboarding scenarios. While TAPs expire naturally, situations like phishing incidents or policy violations require immediate credential revocation rather than waiting for expiry. This script provides operators a direct way to instantly invalidate all TAPs for a user without waiting for natural expiration or manual Microsoft Entra ID portal navigation.
 
 ### What It Protects Against
-- **Silent TAP persistence after compromise:** The script prevents an attacker from using a valid TAP even if they've obtained the user's primary credentials.
-- **Operator uncertainty about expiry:** By displaying creation time, expiry time, and one-time-use status before deletion, the script prevents accidental removal of TAPs the user still needs (though it removes all anyway — the display is informational).
-- **Partial failures:** The script counts successful removals and reports how many of N TAPs were actually deleted, so the operator knows whether all TAPs are truly gone or whether some deletion calls failed silently.
-- **Graph context loss:** The script checks for an active `MgGraph` context and connects with the correct scope (`UserAuthenticationMethod.ReadWrite.All`) if needed, preventing "not connected" errors mid-execution.
-- **User lookup failure:** The script validates that the UPN actually exists in the tenant before attempting to fetch TAPs, avoiding confusing error messages.
+The script guards against silent failures in bulk TAP deletion by:
+- Catching and reporting individual removal failures without stopping the entire operation
+- Confirming user identity before deletion (prevents typos in UPN)
+- Displaying expiry information before confirmation (prevents accidental removal of valid TAPs)
+- Tracking and reporting the count of successful vs. attempted removals
+
+It does not protect against unauthorized operator access or permission escalation—that is delegated to Microsoft Graph scoping.
 
 ### Invariants
-- The user running the script must have delegated permissions for `UserAuthenticationMethod.ReadWrite.All` in the M365 tenant (either via app-based or interactive authentication).
-- The UPN entered must match a valid user object in the tenant's Azure AD.
-- The Graph SDK (`Microsoft.Graph.Authentication` and `Microsoft.Graph.Users`) must be installed and importable.
-- All TAPs for a user share the same `UserId`, allowing batch removal in a single loop.
+- The operator must be authenticated to Microsoft Graph with `UserAuthenticationMethod.ReadWrite.All` scope before execution
+- The user identified by UPN must exist in the connected tenant
+- Each TAP object returned by Graph must have `Id`, `CreatedDateTime`, `StartDateTime`, `LifetimeInMinutes`, and `IsUsableOnce` properties
+- The confirmation prompt must be explicitly answered with "y" to proceed with deletion
 
-### Evolution Notes
-This file was introduced in commit `a6ccdcf` on 2026-05-08 as part of the initial MFA family feature release and has not been modified since. It arrived fully formed with confirmation prompts, detailed TAP metadata display, error handling, and success counters.
+### Key Patterns
+**Defensive Graph connection**: The script checks for an existing Graph context and auto-connects with required scopes if missing, eliminating a common pre-flight failure.
+
+**User lookup before action**: UPN is used to fetch the user object and confirm existence, catching typos early and avoiding cryptic downstream errors.
+
+**Display-then-confirm**: TAP details (creation time, expiry, one-time flag) are shown before the destructive confirmation prompt, allowing operators to verify they're deleting the right credentials.
+
+**Partial success tracking**: The script counts successful removals separately and reports both, allowing operators to detect partially failed operations requiring retry.
 
 ### Change Log
-- 2026-05-08: Initial commit — add remove-taps script to revoke all active TAPs for a user after phishing or compromise incidents.
+- 2026-05-08: Initial commit introducing remove-taps as part of MFA family tooling to enable immediate TAP revocation beyond natural expiry.

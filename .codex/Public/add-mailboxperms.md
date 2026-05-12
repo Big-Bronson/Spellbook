@@ -1,22 +1,36 @@
-## Public\add-mailboxperms.ps1
+## Public/add-mailboxperms.ps1
 
 ### What This File Does
-This script grants delegated mailbox access permissions to a user in Exchange Online by prompting an MSP helpdesk engineer for a target mailbox and trustee, then applying either Full Access and/or Send As rights through the appropriate Exchange cmdlets. It serves as an interactive wrapper around `Add-MailboxPermission` and `Add-RecipientPermission` that validates both identities exist before attempting to grant anything.
+
+This script is an interactive command-line tool that grants delegated mailbox access to a user in Exchange Online. It prompts for a target mailbox and a trustee user, validates both exist, then asks which permissions to grant (Full Access and/or Send As), and applies those permissions using Exchange cmdlets. It's part of a three-function permissions suite alongside get-mailboxperms and get-userperms.
 
 ### Why It Exists
-Exchange Online permission delegation is a common helpdesk task—users need to access shared mailboxes, managers need Send As rights on department accounts, or IT needs to grant admins temporary access—but the raw cmdlets require the engineer to know which cmdlet handles which permission type and how to construct the parameters correctly. This script collapses that cognitive load into a guided Q&A flow, eliminating the need to juggle two separate cmdlet syntaxes and reducing the chance of applying the wrong permission type. The auto-mapping prompt specifically addresses the UX friction point where Full Access is granted but the mailbox doesn't appear in Outlook unless that flag is set, leading to confused support calls.
+
+Exchange Online permissions are complex and error-prone to grant via raw cmdlet calls—the operations use different cmdlets (Add-MailboxPermission vs. Add-RecipientPermission), have different parameter names (User vs. Trustee), and involve user decisions like auto-mapping. This script centralizes that workflow, validates inputs before acting, and surfaces results clearly so admins can confidently delegate mailbox access without consulting documentation or making typos.
 
 ### What It Protects Against
-**Invalid identity lookup**: The script validates that the target mailbox exists and the trustee exists in Exchange *before* attempting any permission grants, preventing silent failures or cryptic "user not found" errors mid-operation. **Partial success on error**: Each permission type (Full Access and Send As) is wrapped in its own try-catch block so that if one fails, the other can still succeed; the engineer sees exactly which operation failed rather than getting a blanket exception. **Silent no-ops**: If the engineer answers "no" to both Full Access and Send As prompts, the script exits early with a message rather than executing nothing in the background and leaving the engineer uncertain whether it actually did anything.
+
+- **Invalid mailbox identity**: Validates the target mailbox exists before attempting to grant permissions, preventing silent failures or confusing error messages.
+- **Invalid trustee identity**: Checks that the user exists in Exchange before submitting permission requests, avoiding orphaned or unresolvable permissions.
+- **No-op requests**: Detects when a user selects neither Full Access nor Send As and exits without making unnecessary API calls.
+- **Missing Exchange connection**: Auto-connects to Exchange Online if not already connected.
+- **Partial failures**: Uses try-catch blocks to isolate Full Access and Send As operations, so one can fail independently without masking the other.
 
 ### Invariants
-- Exchange Online must be reachable; the script will auto-connect if not already connected.
-- The `$identity` input must resolve to a valid mailbox (user, shared, or resource mailbox).
-- The `$trustee` input must resolve to a valid Exchange recipient (the user being granted rights).
-- At least one of Full Access or Send As must be selected, otherwise the script exits.
 
-### Evolution Notes
-This file was introduced as part of the initial mailbox permissions family in a single commit and has not been modified since. It represents the completed, stable design intent for interactive permission granting without subsequent refinement or bugfixes.
+- Exchange Online PowerShell module must be available (connection is auto-attempted).
+- Identity and trustee parameters must resolve to valid Exchange objects.
+- At least one permission type (Full Access or Send As) must be selected for the script to proceed.
+- The user running this script must have permissions to call Add-MailboxPermission and Add-RecipientPermission in the tenant.
+
+### Key Patterns
+
+- **Interactive prompts**: Uses Read-Host to gather input in a conversational flow rather than script parameters, making it discoverable and forggiving for ad-hoc use.
+- **Validation-before-action**: Validates both mailbox and trustee before prompting for permission choices, reducing wasted input.
+- **Conditional auto-mapping**: Only asks about auto-mapping if Full Access is chosen, avoiding irrelevant questions.
+- **Independent permission blocks**: Full Access and Send As are granted in separate try-catch blocks, so failure of one doesn't prevent the other from being attempted.
+- **Color-coded output**: Uses green for success, red for errors, and cyan for confirmation, providing visual feedback without verbose logging.
 
 ### Change Log
-- 2026-05-08: Initial commit introducing add-mailboxperms as part of the mailbox permissions family (alongside get-mailboxperms and get-userperms).
+
+- 2026-05-08: Initial commit adding mailbox permissions family (get-mailboxperms, get-userperms, add-mailboxperms).

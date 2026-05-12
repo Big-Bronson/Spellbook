@@ -1,28 +1,29 @@
-## Public\get-guestaudit.ps1
+## Public/get-guestaudit.ps1
 
 ### What This File Does
-This script audits all guest accounts in an M365 tenant, returning their display name, UPN, invitation status, creation date, and a risk categorization. It exports the results to a timestamped CSV on the user's desktop and displays a sorted table in the console. The categorization flags guests with pending invitations, those inactive for 90+ days, and recent additions—making it immediately actionable for quarterly access reviews.
+This script audits guest accounts in an Azure AD tenant by querying Microsoft Graph, categorizing them by invite acceptance status and activity age, then displays results in a formatted table and exports them to a timestamped CSV file on the user's Desktop. It runs as a standalone operational tool for access reviews.
 
 ### Why It Exists
-Guest account hygiene is a compliance and security requirement but lacks built-in reporting in the M365 admin center. An MSP engineer running access reviews needed a quick way to identify stale guest accounts (never accepted invites, dormant for months) without manually querying Graph or wading through tenant reports. This script automates that discovery and produces an auditable export in seconds—turning a 20-minute manual task into a repeatable 30-second run.
+Organizations need regular visibility into guest account hygiene—specifically identifying guests who never accepted invites or have gone inactive. Manual review of guest lists in the Azure portal is tedious and error-prone; this script automates the classification and export, making quarterly access reviews tractable.
 
 ### What It Protects Against
-The script defends against two classes of failure:
+The script guards against two classes of drift:
+1. **Orphaned invites**: guests in `PendingAcceptance` state (wasting a license seat or creating confused access expectations)
+2. **Stale credentials**: accounts created over 90 days ago (high-risk targets for credential compromise or policy violation)
 
-1. **Graph authentication loss mid-session**: If the calling shell loses its Graph context, the initial `Get-MgContext` check reconnects with the correct scopes rather than failing silently downstream. This matters because the script is dot-sourced by the toolkit's main entry point and runs in the user's session context—a stale token would otherwise fail at the first `Get-MgUser` call.
-
-2. **Session termination on early exit**: The original code used `exit` when no guests were found, which terminates the entire PowerShell session when the script is dot-sourced (rather than spawning a subprocess). This was fixed in May 2026 to use `return` instead, preserving the user's session and any variables or history in the parent shell.
+It also protects against running without Graph authentication by checking for an active `MgContext` and connecting if needed, avoiding silent failures.
 
 ### Invariants
-- The Graph SDK (`Microsoft.Graph` module) must be installed and importable.
-- The authenticated user must hold at least `User.Read.All` and `Directory.Read.All` scopes; scripts will reconnect if scopes are missing.
-- The user's Desktop folder (`$env:USERPROFILE\Desktop`) must be writable.
-- Guest accounts must have a `CreatedDateTime` field populated (standard for all M365 users).
-- The 90-day cutoff is calculated at runtime using the local system clock, so clock skew between the client and Azure will introduce drift in the "Active >90 days ago" categorization.
+- Microsoft Graph PowerShell SDK must be installed and functional
+- The executing user must have Graph `User.Read.All` and `Directory.Read.All` permissions
+- The user's Desktop directory must exist and be writable
+- The `userType eq 'Guest'` filter must remain consistent with Azure AD's guest designation logic
+- The 90-day cutoff is a fixed policy constant (not parameterized)
 
-### Evolution Notes
-The script has undergone one substantive fix since its initial release. It was introduced in May 2026 with a critical portability bug: it used `exit` instead of `return` when no guests were found, which would terminate the user's entire PowerShell session when invoked through the toolkit's dot-sourcing loader. This was identified during v1.0.1 review and corrected in the May 8, 2026 commit as part of a broader audit of script lifecycle handling across the Spellbook module. The fix ensures the script behaves as a safe, embedded cmdlet rather than an external process that hijacks session control.
+### Key Patterns
+**Self-healing connection**: The script checks for an active Graph context and connects inline if absent, making it idempotent and safe to re-run. **Classification-via-notes**: Risk categorization (unanswered invite, stale, recent) is computed per-row and exposed as a `Notes` field rather than enforcing a strict risk tier, allowing humans to apply domain judgment. **Export-to-user-desktop**: Results are always saved with a date-stamped filename, creating an audit trail without requiring a database or centralized logging infrastructure.
 
 ### Change Log
-- 2026-05-08: Replace `exit` with `return` to prevent session termination when dot-sourced by the toolkit.
-- 2026-05-07: Initial release.
+- 2026-05-08: Fix script portability and password handling
+- 2026-05-07: Fix Publish.ps1 string interpolation on GUID error message
+- 2026-05-07: Initial Release

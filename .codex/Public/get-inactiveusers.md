@@ -1,32 +1,26 @@
-## Public\get-inactiveusers.ps1
+## Public/get-inactiveusers.ps1
 
 ### What This File Does
-When an MSP engineer runs this script against a customer M365 tenant, it identifies enabled user accounts that have not logged in or accessed their mailbox within a configurable threshold (default 90 days), flags accounts that have never logged in at all, and exports the results to a timestamped CSV file on the engineer's desktop for review, remediation, or license optimization. The script operates in two distinct modes: on-premises Active Directory environments and cloud-only M365 tenants, automatically detecting which data sources to query based on the engineer's initial input.
+This is an interactive audit script that discovers enabled user accounts with no recent activity—either those who haven't logged in within a configurable threshold (default 90 days) or never logged in at all. It supports both on-premises Active Directory environments and cloud-only Microsoft 365 tenants, adapting its data sources and connection logic accordingly, then outputs results as a formatted table and optionally exports to CSV.
 
 ### Why It Exists
-Inactive accounts are a persistent operational and security liability—they consume licenses, create orphaned mailboxes, present credential exposure risk if not promptly disabled, and complicate compliance audits. While raw `Get-ADUser`, `Get-MailboxStatistics`, and `Get-MgUser` cmdlets can retrieve inactivity data, they require the engineer to manually correlate results across multiple sources, calculate cutoff dates, filter by enabled status, and normalize output across on-prem and cloud architectures. This script consolidates that workflow into a single interactive tool that eliminates manual date math, normalizes terminology ("Never Logged In" vs. "No Mailbox Activity"), and handles the credential/connection logic that differs between hybrid and cloud-native tenants.
+Organizations need to identify dormant accounts for security and compliance reasons: inactive accounts are attack surface, and regulatory frameworks often require periodic reviews of active accounts. The dual-path design acknowledges that enterprises run mixed environments—some on-prem AD only, some cloud-only—so a single script needed to handle both without requiring separate tools.
 
 ### What It Protects Against
-The script guards against several practical failures:
-
-- **Connection state ambiguity**: It checks for existing Exchange Online and Graph connections before attempting to establish new ones, preventing spurious re-authentication or session conflicts.
-- **Null comparison crashes**: It explicitly guards against `LastLogonDate -eq $null` (on-prem) and missing mailbox statistics (cloud), which would cause filtering logic to fail silently or throw unhandled exceptions.
-- **Case-sensitivity data loss**: It normalizes UPNs to lowercase when indexing mailbox stats, preventing mismatches in hashtable lookups that would incorrectly classify a user as having "No Mailbox Activity."
-- **Empty input defaults**: It provides a sensible 90-day default if the engineer presses Enter without typing a threshold, preventing the script from halting on invalid input.
-- **Orphaned mailboxes in cloud tenants**: By cross-referencing Graph users with actual mailbox statistics, it distinguishes between accounts that have never been assigned a mailbox and those with inactive mailboxes.
+The script protects against incomplete results in cloud environments by indexing mailbox statistics before querying users, preventing N+1 lookup performance issues. It guards against null reference errors by explicitly checking for missing `LastLogonDate` (on-prem) and missing mailbox activity records (cloud). It avoids case-sensitivity bugs by normalizing UPNs to lowercase before dictionary lookups. The conditional connection checks prevent redundant authentication or failures from already-connected sessions.
 
 ### Invariants
-For this script to execute correctly, the following must hold true:
+- Only enabled user accounts are considered (disabled users are filtered out).
+- The cutoff date calculation must happen before the branched logic (both paths depend on `$cutoff`).
+- Cloud path requires both Exchange Online and Microsoft Graph connections to exist or be established.
+- On-prem path requires the ActiveDirectory module to be importable.
+- UPN comparison must be case-insensitive (achieved via `.ToLower()`).
+- Results are always sorted by last login date, with null values first.
 
-1. The engineer running the script must have appropriate permissions: `Get-ADUser` rights for on-prem mode, or `User.Read.All` + `Directory.Read.All` Graph scopes and Exchange Online admin access for cloud mode.
-2. The ActiveDirectory PowerShell module must be installed and available on the system for on-prem mode; Exchange Online Management and Microsoft.Graph modules must be available for cloud mode.
-3. The cutoff date calculation assumes the system clock is accurate (it uses `Get-Date` without UTC coercion).
-4. Cloud-only mode assumes that `Get-MailboxStatistics` returns a `UserPrincipalName` property; if the mailbox lacks a UPN reference, it will silently not appear in the `$statsIndex` hashtable and be flagged as "No Mailbox Activity."
-5. The Desktop export path must be writable (uses `$env:USERPROFILE\Desktop`).
-
-### Evolution Notes
-This script was introduced in the initial release (May 7, 2026) with full feature parity across on-prem and cloud modes. On May 8, 2026, it underwent a single refactoring: the cloud-mode user enumeration loop was converted from a `foreach` statement to a pipeline-style `$mgUsers | ForEach-Object` pattern. This change was not driven by a bug or missing feature, but rather by a tooling-wide consistency initiative (visible in the commit message) to align loop patterns across the Spellbook module. The script's core logic—threshold calculation, connection handling, output formatting—has remained stable since inception.
+### Key Patterns
+**Dual-mode branching**: The script uses a simple string mode selector to completely swap implementation paths rather than trying to unify them, accepting code duplication over fragile abstraction. **Lazy connection**: Cloud connections are established only if needed, checking for existing context first. **Custom object projection**: Both paths reshape raw directory objects into a consistent output schema before filtering and sorting, keeping presentation logic separate. **Lookup table indexing**: The cloud path pre-indexes mailbox stats into a dictionary to avoid repeated cmdlet calls.
 
 ### Change Log
-- 2026-05-08: Convert foreach statement to ForEach-Object pipeline pattern for consistency with module conventions.
-- 2026-05-07: Initial release with dual on-prem/cloud-only mode support, 90-day default threshold, and CSV export.
+- 2026-05-08: Fix OrderedDictionary ContainsKey bug; add CLAUDE.md; Publish.ps1 rewrite
+- 2026-05-07: Fix Publish.ps1 string interpolation on GUID error message
+- 2026-05-07: Initial Release

@@ -1,28 +1,22 @@
-## Public\remove-forwarding.ps1
+## Public/remove-forwarding.ps1
 
 ### What This File Does
-This script safely removes SMTP forwarding rules from a single Exchange Online mailbox. An MSP engineer runs it interactively, provides a mailbox identity (UPN or SMTP address), reviews the current forwarding destination, confirms the removal, and the script clears both the `ForwardingSMTPAddress` and `DeliverToMailboxAndForward` settings in one atomic operation.
+This script disables email forwarding on an Exchange Online mailbox by clearing the forwarding address and preventing mail from being delivered to both the original mailbox and the forwarding destination simultaneously. It's an interactive utility that prompts for a mailbox identity, shows the current forwarding configuration, and requires explicit user confirmation before making changes.
 
 ### Why It Exists
-Mail forwarding configuration is common in M365 tenants—employees move teams, leave the company, or consolidate inboxes. However, removing forwarding requires Exchange Online PowerShell access and knowledge of the correct cmdlet parameters. This script eliminates friction by automating the lookup, confirmation, and removal workflow so helpdesk staff don't have to remember syntax or manually craft Set-Mailbox commands. It also prevents accidental removals by showing what will be deleted and requiring explicit confirmation.
+Email forwarding rules can become stale, misconfigured, or create security risks if left unmanaged. Administrators need a straightforward way to cleanly remove forwarding rules without having to directly manipulate Exchange cmdlets or remember which properties must be reset together (both `ForwardingSMTPAddress` and `DeliverToMailboxAndForward`).
 
 ### What It Protects Against
-**Mailbox not found / identity typo:** The script validates the mailbox exists before attempting any changes; a mistyped address fails fast with a clear error message rather than silently failing or corrupting data.
-
-**Removing forwarding that doesn't exist:** The script checks whether `ForwardingSMTPAddress` is actually set; if it's blank, it exits gracefully rather than running a redundant or confusing removal operation.
-
-**Accidental deletion:** The script displays the current forwarding address and requires the operator to type "y" to confirm; this two-stage gate prevents muscle-memory mistakes.
-
-**Orphaned DeliverToMailboxAndForward setting:** The script explicitly sets `DeliverToMailboxAndForward` to `$false` alongside clearing the address, preventing a state where forwarding is removed but the "keep a copy" flag remains enabled and causes confusion.
+The script defends against several failure modes: (1) attempting to modify a mailbox that doesn't exist by validating the identity upfront, (2) accidentally removing forwarding when none is configured by checking if the current forwarding address is empty, (3) accidental removal through explicit y/n confirmation, and (4) partial state corruption by setting both the forwarding address and the delivery-to-both-locations flag in a single atomic operation.
 
 ### Invariants
-- Exchange Online PowerShell must be connected (or connectable) when the script runs.
-- The mailbox identity provided must resolve to a valid Exchange Online mailbox.
-- The operator must have permissions to modify mailbox forwarding settings (typically Exchange Admin or Helpdesk Admin role).
-- The mailbox must not be in a state that prevents Set-Mailbox modifications (soft-deleted, on litigation hold with frozen forwarding, etc.).
+- An Exchange Online connection must exist before execution (the script connects if needed)
+- The provided identity must resolve to a valid mailbox
+- A non-empty `ForwardingSMTPAddress` must exist before removal is attempted
+- User confirmation (typing "y") must be given before any mailbox modification occurs
 
-### Evolution Notes
-This file was introduced in a single commit and has not been modified since. The script arrived in its final form as part of a feature pair with `set-forwarding.ps1`, both designed together to provide complementary add and remove operations for mail forwarding. No subsequent bugs, feature requests, or edge cases have prompted changes.
+### Key Patterns
+**Early validation and early return**: The script checks for mailbox existence and current forwarding state upfront, exiting with context-specific messages rather than proceeding to doomed operations. **User confirmation gate**: A blocking y/n prompt prevents accidental execution. **Paired property reset**: Both `ForwardingSMTPAddress` and `DeliverToMailboxAndForward` are set together, since setting one without the other leaves the mailbox in an ambiguous state.
 
 ### Change Log
-- 2026-05-08: Initial commit; added remove-forwarding script with mailbox validation, current-state display, and confirmation prompt.
+- 2026-05-08: Initial addition as part of forwarding management toolset.

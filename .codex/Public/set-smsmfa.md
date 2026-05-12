@@ -1,26 +1,30 @@
-## Public\set-smsmfa.ps1
+## Public/set-smsmfa.ps1
 
 ### What This File Does
-When run by an MSP helpdesk engineer, this script interactively updates the phone number associated with an existing SMS or phone-based MFA method for a specified Microsoft 365 user. The engineer provides a user's UPN, selects which phone method to modify from a list, supplies a new phone number in E.164 format, and the script applies the change via Microsoft Graph.
+This script updates the phone number on an existing SMS/phone-based MFA method for an Azure AD user. It connects to Microsoft Graph, prompts an operator to select a user and one of their registered phone methods, then replaces that method's phone number with a new one provided in E.164 format.
 
 ### Why It Exists
-MFA phone numbers become outdated regularly—users change devices, upgrade carriers, or port numbers. Rather than forcing engineers to navigate the Azure portal or use raw Graph API calls with method IDs, this script provides a guided, interactive workflow that lists the user's current phone methods, lets the engineer pick which one to change, and safely updates it. It pairs with `add-smsmfa` (which registers new methods) and `get-smsmfa` (which lists them) to form a complete phone MFA management toolkit.
+Users need their MFA phone numbers updated when they change devices, carriers, or phone numbers. Rather than deleting and re-registering methods (which may disrupt MFA temporarily), this script allows in-place updates while preserving the method type (mobile, alternate mobile, office) and the method's identity in the authentication system.
 
 ### What It Protects Against
-- **User lookup failure**: Script validates that the UPN exists and is found in the tenant before attempting to fetch methods, avoiding cryptic Graph errors downstream.
-- **No methods registered**: Script detects when a user has zero phone methods and gracefully exits with guidance to use `add-smsmfa` first, rather than throwing an error.
-- **Out-of-range selection**: Script validates that the user's numeric choice is actually a valid index (1 to method count), rejecting non-numeric or out-of-bounds input.
-- **Empty phone number input**: Script refuses to proceed if the user submits a blank phone number, preventing accidental nullification.
-- **Graph permission gap**: Script auto-connects with the required `UserAuthenticationMethod.ReadWrite.All` scope if no Graph context exists, avoiding "permission denied" surprises mid-execution.
+- **Missing Graph connection**: Establishes Graph context automatically if not already authenticated, preventing silent failures due to missing credentials.
+- **Invalid user input**: Validates that the UPN exists in Azure AD and that the menu selection is numeric and within bounds.
+- **Empty phone list**: Detects when a user has no registered phone methods and directs the operator to `add-smsmfa` instead of attempting an update.
+- **Incomplete input**: Aborts if the operator provides an empty phone number rather than attempting an update with null data.
+- **Graph API errors**: Catches and reports update failures with the underlying error message.
 
 ### Invariants
-- A valid Microsoft Graph context with `UserAuthenticationMethod.ReadWrite.All` scope must exist (or be auto-created) before the script finishes.
-- The target user must exist in the tenant and be queryable by UPN.
-- At least one phone authentication method must already be registered on that user's account.
-- The phone number supplied must be in E.164 format (e.g., `+61412345678`) for the Graph API to accept it.
+- The operator must be authenticated to Microsoft Graph with `UserAuthenticationMethod.ReadWrite.All` scope before or during execution.
+- The target user must exist in Azure AD and be queryable by UPN.
+- The target user must have at least one registered phone authentication method.
+- The new phone number must be a valid string; validation of E.164 format is deferred to the Graph API.
+- The method ID retrieved from the first query must still be valid at the time of the update (concurrent deletion would cause failure).
 
-### Evolution Notes
-This file was introduced in a single commit on 2026-05-08 as part of a new MFA management family and has not changed since. It arrived fully formed, with all validation logic, user prompts, and error handling already in place.
+### Key Patterns
+- **Interactive menu**: Lists available methods with 1-based indexing and prompts operator selection, reducing the risk of updating the wrong method.
+- **Defensive Graph queries**: Uses `-ErrorAction SilentlyContinue` on read operations and converts results to arrays (`@(...)`) to handle zero or multiple results consistently.
+- **Confirmation via re-entry**: Requires the operator to explicitly provide the new phone number rather than defaulting or auto-detecting, ensuring intentional changes.
+- **Preserve-on-update**: Re-submits the existing `PhoneType` to the Graph API during the update, ensuring the method classification is not accidentally cleared.
 
 ### Change Log
-- 2026-05-08: Initial commit; added interactive phone MFA update workflow with UPN lookup, method selection, and E.164 validation.
+- 2026-05-08: Initial addition as part of MFA family feature set.

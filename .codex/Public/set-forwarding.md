@@ -1,28 +1,23 @@
-## Public\set-forwarding.ps1
+## Public/set-forwarding.ps1
 
 ### What This File Does
-This script configures SMTP forwarding on an Exchange Online mailbox by prompting a helpdesk engineer for a source mailbox and destination address, then applying the forwarding rule after interactive confirmation. It handles the technical detail of setting both the forwarding address and the "deliver to mailbox and forward" flag based on user preference.
+This script configures email forwarding on an Exchange Online mailbox by prompting a user for a source mailbox and destination email address, validating both exist in the organization, asking whether to keep a local copy of forwarded mail, and then applying the forwarding rule with user confirmation.
 
 ### Why It Exists
-Email forwarding is a routine helpdesk task—employees leave teams, change roles, or need mail temporarily redirected—but the Exchange Online cmdlets require the engineer to know exact syntax and parameter names. More importantly, forwarding rules can silently fail or be misconfigured if the destination doesn't actually exist in the organization. This script wraps the raw `Set-Mailbox` operation with validation and confirmation steps, reducing the risk of a forwarding rule pointing to a typo'd or invalid address.
+Setting up mail forwarding requires multiple Exchange Online cmdlets and validation steps that are error-prone when done manually. This script bundles the validation logic, confirmation workflow, and configuration into a single interactive command so administrators can safely forward mailboxes without typos or misconfiguration.
 
 ### What It Protects Against
-**Invalid source mailbox**: The script tries to resolve the source identity before doing anything; if it doesn't exist, it fails cleanly rather than attempting a `Set-Mailbox` operation that would error cryptically.
-
-**Invalid destination address**: The script explicitly calls `Get-Recipient` to verify the destination exists in Exchange. Without this check, an engineer could easily mistype a recipient address, and the forwarding rule would be set to a non-existent address, silently losing mail.
-
-**Accidental overwrite of existing forwarding**: The script displays any existing forwarding rule in yellow before confirmation, so an engineer won't unknowingly replace a previously configured forward.
-
-**Silent loss of local copies**: By asking explicitly whether to keep a copy, the script prevents the common mistake of setting `DeliverToMailboxAndForward` to false when the business need requires the source mailbox to retain incoming mail.
+The script defends against four concrete failure modes: (1) attempting to configure forwarding on a non-existent source mailbox, (2) forwarding to an address that doesn't exist in Exchange (which would silently fail or bounce mail), (3) accidentally overwriting an existing forwarding rule without noticing, and (4) accidentally applying the wrong settings by requiring explicit yes/no confirmation before executing the change.
 
 ### Invariants
-- Exchange Online PowerShell module must be installed and importable
-- The engineer must have permissions to read and modify mailbox forwarding rules
-- The destination address provided must be resolvable as a recipient in the Exchange organization (internal mailbox, mail contact, or mail-enabled security group)
-- The connection to Exchange Online must be active before the script runs (or the auto-connect at the top must succeed)
+- An active Exchange Online connection must exist or be establishable at runtime
+- The source mailbox identifier (UPN or SMTP address) must resolve to exactly one mailbox
+- The destination address must resolve to a valid Exchange recipient
+- User must explicitly confirm the configuration before it is applied
+- The `DeliverToMailboxAndForward` parameter must be set to the boolean result of the keep-copy prompt
 
-### Evolution Notes
-This file was introduced in a single commit and has not changed since. The script arrived in its current, complete form with source validation, destination validation, confirmation prompts, and visual formatting all present from day one.
+### Key Patterns
+**Interactive validation**: The script asks for input, validates each piece independently, then summarizes everything and asks for final approval. This prevents silent failures and gives the user a chance to spot mistakes. **Connection lazy-loading**: It checks for an existing Exchange connection before establishing one, avoiding unnecessary re-authentication. **Overwrite warning**: It detects and displays existing forwarding rules in yellow to make destructive changes visible. **Structured error handling**: Each major operation (mailbox lookup, recipient lookup, rule application) has its own try-catch block with specific error messages.
 
 ### Change Log
-- 2026-05-08: Initial commit adding set-forwarding with destination validation and keep-copy confirmation.
+- 2026-05-08: Initial commit adding set-forwarding script with source and destination validation, keep-copy prompt, and confirmation workflow.

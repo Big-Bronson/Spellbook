@@ -1,31 +1,22 @@
-## Public\add-smsmfa.ps1
+## Public/add-smsmfa.ps1
 
 ### What This File Does
-This script registers a new SMS/phone-based MFA authentication method for a specified M365 user by prompting the engineer to supply a UPN and phone number, then letting them choose whether the phone should be registered as a primary mobile (SMS + voice capable), alternate mobile, or office line before pushing the configuration to Azure AD via the Microsoft Graph API.
+This script adds a new phone-based MFA method to a user's Azure AD authentication profile. It prompts an operator to supply a UPN and phone number, lets them choose among three phone types (mobile, alternate mobile, or office), then registers that phone number with Microsoft Graph so the user can receive SMS or voice-call MFA codes.
 
 ### Why It Exists
-Helpdesk engineers need a quick, interactive way to add phone-based MFA to user accounts without manually navigating the Azure portal or writing raw Graph API calls. The script encapsulates the common workflow: find the user, collect the phone details, validate the input format, choose the phone type, and register it—all in one guided experience. This is particularly useful in bulk onboarding scenarios or when a user's existing MFA method has failed and a phone fallback is needed immediately.
+Organizations need a way to enroll users in SMS/phone-based MFA without requiring users to self-register or waiting for them to adopt authenticator apps. This script lets support or identity teams quickly add phone MFA methods to user accounts during onboarding or when users have lost access to other MFA devices.
 
 ### What It Protects Against
-The script defends against several failure modes:
-
-- **User not found**: It validates that the UPN exists in the tenant before attempting to register a phone method, preventing orphaned or failed Graph requests against non-existent user IDs.
-- **Empty phone number input**: It rejects empty phone input with an explicit abort rather than allowing the Graph call to fail silently.
-- **Invalid phone type selection**: The switch statement has a safe default (`mobile`) so that any unrecognized input (including just pressing Enter) maps to a sensible choice rather than passing garbage to the API.
-- **Missing Graph context**: It auto-connects to Microsoft Graph with the required `UserAuthenticationMethod.ReadWrite.All` scope if the engineer isn't already authenticated, avoiding "not connected" errors mid-run.
-- **Graph API exceptions**: The `New-MgUserAuthenticationPhoneMethod` call is wrapped in try-catch with `-ErrorAction Stop`, so transient or permission errors are caught and displayed in red rather than crashing the script.
+The script defends against four concrete failure modes: (1) running without an active Microsoft Graph connection by auto-connecting if needed, (2) typos in the UPN by validating the user exists before proceeding, (3) malformed phone numbers by explicitly asking for E.164 format in the prompt, and (4) silent API failures by wrapping the registration call in a try-catch block and surfacing errors to the operator. It does *not* protect against invalid phone numbers that pass syntax validation but don't exist.
 
 ### Invariants
-For this script to work correctly, these conditions must hold:
+- A valid Microsoft Graph context must exist (with `UserAuthenticationMethod.ReadWrite.All` scope) before calling `New-MgUserAuthenticationPhoneMethod`
+- The UPN supplied by the operator must match an actual user in the directory
+- The phone number must be non-empty (the script returns early if blank)
+- The phone type parameter must be one of: `"mobile"`, `"alternateMobile"`, or `"office"`
 
-1. The engineer must have a valid M365 tenant with Azure AD and Microsoft Graph API access.
-2. The UPN provided must exist in the tenant's user directory.
-3. The phone number must be supplied in E.164 format (e.g., `+61412345678`), or the Graph API will reject it.
-4. The service principal or account running the script must hold the `UserAuthenticationMethod.ReadWrite.All` permission on the Microsoft Graph API.
-5. The user's authentication policy must not prohibit phone-based MFA (some orgs block it in favor of passwordless methods).
-
-### Evolution Notes
-This script was introduced in a single commit (2026-05-08) as part of a cohesive MFA family feature alongside `get-smsmfa`, `set-smsmfa`, `add-tap`, and `remove-taps`. The file has not changed since its introduction; it has remained stable and functionally complete. The initial design already included proper error handling, Graph context auto-connection, and user-friendly menu prompts, so no refinements or bug fixes have been necessary.
+### Key Patterns
+**Interactive prompting**: The script uses `Read-Host` to collect input rather than accepting pipeline parameters, treating this as a manual, attended operation rather than an automatable batch process. **Default fallback**: The type selector uses a switch with `default` to handle invalid choices gracefully (defaulting to mobile). **Inline validation**: User existence is checked immediately after lookup; the script returns early rather than proceeding with a null user object.
 
 ### Change Log
-- 2026-05-08: Initial commit—added script to register new SMS/phone MFA methods with support for mobile, alternate mobile, and office phone types.
+- 2026-05-08: Initial commit adding SMS MFA registration via `New-MgUserAuthenticationPhoneMethod` with mobile/alternate/office type selection

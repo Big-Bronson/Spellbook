@@ -1,22 +1,22 @@
-## Public\get-smsmfa.ps1
+## Public/get-smsmfa.ps1
 
 ### What This File Does
-When an MSP helpdesk engineer runs this script, it prompts for a user's UPN, retrieves that user from the tenant, queries Microsoft Graph for all phone-based MFA methods registered to them, and displays a formatted table showing the method type (mobile, office, alternate mobile) and phone number for each one. It's a read-only audit tool that answers "what phone MFA does this user have configured right now?"
+This script retrieves and displays all phone-based MFA methods registered to a user in Microsoft Entra ID. It connects to Microsoft Graph, looks up a user by UPN, fetches their authentication phone methods, and formats them for on-screen inspection with IDs, phone types, and numbers.
 
 ### Why It Exists
-Phone-based MFA (SMS and voice call) is often the first line of support contact when users lose access to authenticator apps or hardware keys. Helpdesk staff needed a fast way to see what phone numbers are registered without digging through the Azure AD portal or Graph Explorer. This script was introduced as part of a broader MFA management family that lets operators query, add, update, and remove phone methods and temporary access passes — turning scattered Graph operations into a cohesive helpdesk toolkit.
+Operators need visibility into what MFA phone methods a user has configured—mobile, alternate mobile, office—to troubleshoot authentication issues, verify enrollment, or prepare for method updates or removal. This script provides the read-only query layer that sits upstream of the set/add/remove operations in the MFA toolkit.
 
 ### What It Protects Against
-**User lookup failure:** If the UPN doesn't exist or is misspelled, the script catches the error from Get-MgUser and exits cleanly with a red-text message instead of proceeding with a $null user object and throwing cryptic downstream errors. **Empty result set:** If a user has no phone methods registered, the script explicitly states that rather than showing an empty table, which could confuse an operator into thinking the query failed. **Missing Graph context:** The script checks whether a Graph session already exists before attempting to connect, avoiding redundant authentication or failing silently if credentials aren't cached.
+The script guards against three failure modes: (1) missing Graph connection—it auto-connects if needed rather than failing silently; (2) nonexistent users—it validates the UPN lookup and exits cleanly with a clear error message instead of throwing; (3) empty method lists—it gracefully reports "no methods registered" instead of returning nothing and leaving the operator confused about whether the lookup succeeded.
 
 ### Invariants
-- Microsoft Graph PowerShell SDK must be installed (`Get-MgContext`, `Get-MgUser`, `Get-MgUserAuthenticationPhoneMethod` cmdlets must exist)
-- The executing account must hold `UserAuthenticationMethod.Read.All` permission in the tenant
-- The UPN entered must be a valid, resolvable user in the tenant
-- The user's Id property and phone method objects must be retrievable from Graph without network failure
+- Microsoft Graph PowerShell SDK must be installed and loadable.
+- The calling identity must have `UserAuthenticationMethod.Read.All` scope.
+- The user specified by UPN must exist in the tenant.
+- The user object must have `Id` and `DisplayName` properties populated.
 
-### Evolution Notes
-This file was introduced in a single commit and has not changed since. It arrived as a complete, stable implementation with no subsequent refinements, bug fixes, or feature additions. The script's design — immediate UPN prompt, inline error handling, simple columnar output — has remained exactly as first written.
+### Key Patterns
+**Graceful degradation**: `-ErrorAction SilentlyContinue` on potentially failing Graph calls, with explicit validation afterward rather than trapping exceptions. **Interactive input**: `Read-Host` for UPN rather than parameters—this is a manual operator tool, not a scriptable API. **Formatted output**: Uses `Write-Host` with `-ForegroundColor` and string interpolation (`-f`) to produce a clean, readable table without piping to `Format-Table`. **Safe substring**: `$_.Id.Substring(0,8)` truncates the full method ID to a manageable display width.
 
 ### Change Log
-- 2026-05-08: Initial introduction as part of MFA management family (get/set/add-smsmfa, add-tap, remove-taps).
+- 2026-05-08: Initial commit—added phone MFA read operation as part of MFA family feature set.

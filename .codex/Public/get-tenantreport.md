@@ -1,34 +1,23 @@
-## Public\get-tenantreport.ps1
+## Public/get-tenantreport.ps1
 
 ### What This File Does
-
-This script generates a single-page health snapshot of an M365 tenant, designed for an MSP engineer to run at first engagement with a new client or as part of a weekly governance check. It gathers data across licensing, security posture (MFA coverage, admin role distribution), cost waste (disabled accounts holding licenses, shared mailboxes with unnecessary SKUs), directory synchronization status, and service health, then displays the results in a formatted console report while collecting flagged issues into a structured list for escalation or follow-up.
+This script generates a point-in-time health snapshot of a Microsoft 365 tenant by querying Azure AD, Exchange Online, and service health APIs, then displays findings in a formatted report while flagging issues that warrant attention. It's designed to be run as a standalone diagnostic tool—either when onboarding a new client or as a periodic audit.
 
 ### Why It Exists
-
-MSP helpdesk engineers need a fast, single command to answer "what's broken or unusual about this tenant right now?" without chaining together a dozen separate Graph queries or opening multiple portals. The script exists because production M365 tenants often accumulate silent inefficiencies—disabled accounts still burning licensing costs, excessive admin role assignments, users who've never enrolled in MFA—that don't surface in reactive ticket handling. A proactive snapshot report catches these before they become compliance or budget problems. It's also a structured way to onboard a new client: run it once, review the yellow-flagged findings, and you have a baseline understanding of what you inherited.
+M365 administrators need a quick, structured way to spot common cost drains and security gaps without manually hunting through multiple admin portals. The script automates discovery of waste (disabled accounts with licenses, shared mailboxes assigned premium licenses), risk (users without MFA), and configuration drift (admin role bloat, stale directory syncs) in a single run.
 
 ### What It Protects Against
-
-- **Silent license bleed**: Detects disabled accounts still holding SKUs and shared mailboxes with E5 licenses when they only need a room mailbox license, preventing wasted spend from going unnoticed.
-- **Security gaps masquerading as "nobody complained"**: Identifies users with no MFA registered despite global enforcement policies, and flags when Global Administrator role is held by more than three people (indicates lack of PIM or governance).
-- **AD Connect failures going dark**: Checks last sync time so hybrid infrastructure doesn't silently stop synchronizing without immediate visibility.
-- **Guest account sprawl**: Counts guest accounts to catch unauthorized bulk invitations or deprovisioning failures.
-- **Service health blindness**: Surfaces M365 service incidents so you know when user reports are infrastructure-driven rather than tenant misconfiguration.
-- **Connection state assumptions**: Explicitly checks for and establishes both Exchange Online and Microsoft Graph connections before querying, preventing silent failures if the session was closed.
+The script guards against silent cost waste by catching disabled-but-licensed accounts and unnecessarily-licensed shared mailboxes. It flags MFA gaps and excessive admin role membership to reduce exposure to account compromise. It detects stale AD Connect syncs (by checking sync age) to surface hybrid deployment issues. It handles both cloud-only and hybrid tenants gracefully with try-catch blocks. However, it does *not* validate that the calling user has adequate permissions—it assumes the connection was already established correctly.
 
 ### Invariants
+- Exchange Online and Microsoft Graph modules must be available and importable.
+- The authenticated user must hold sufficient Graph permissions (User.Read.All, Directory.Read.All, etc.) and Exchange Online permissions to query mailboxes.
+- The `$report` and `$issues` lists must be initialized before any `Section` or `Row` calls, as the helper functions append to them.
+- The `Row` function's `$flag` parameter must be boolean; truthy/falsy values are coerced, but the intent is strict boolean logic for highlighting.
 
-- The calling user must hold at least Directory.Reader, User.Reader, and ServiceHealthReader permissions in the tenant (the scope declarations enforce this for Graph).
-- Exchange Online and Microsoft Graph modules must be installed locally; the script will attempt to connect but cannot proceed if modules don't exist.
-- The tenant must have at least one verified domain and one subscribed license SKU; empty tenants will produce empty sections but not error.
-- The Microsoft Graph PowerShell SDK must be version 1.x or later (uses `Get-MgContext`, `Get-MgUser -All`, etc.).
-- MFA detection relies on the authentication method API; if a user has deleted all non-password methods, they correctly appear as "no MFA" even if Conditional Access policies mandate it at sign-in.
-
-### Evolution Notes
-
-This file entered the codebase as a complete script in the initial release (May 7, 2026) and has not been modified in its actual logic or output. The second commit on the same day touched `Publish.ps1` (the build/release script), not this file, though the git history artifact shows a second entry for this file. In practical terms: **the script has remained functionally unchanged since release**. This suggests it shipped mature, having been tested against real tenant scenarios before publication, rather than being a minimal viable product that evolved through iteration.
+### Key Patterns
+**Dual-stream output**: The script writes formatted text to the host (screen) *and* accumulates it in a `$report` list for later export. The `Row` helper enforces this symmetry. **Issue flagging**: The `$flag` parameter in `Row` doubles as both a visual cue (yellow text) and a mechanism to populate the separate `$issues` collection, creating a filterable list of findings. **Graceful degradation**: Sections like "AD Connect sync" wrap queries in try-catch to prevent one API failure from halting the entire report. **Filter-then-loop pattern**: Most data sections (users, mailboxes, roles) fetch all objects first with Graph filters, then iterate locally to avoid repeated API calls.
 
 ### Change Log
-
-- 2026-05-07: Initial release—shipped as a fully-formed tenant health snapshot tool with nine coverage areas (licensing, admin roles, MFA, disabled accounts, shared mailbox waste, guest counts, AD Connect sync, service health, and role membership visualization).
+- 2026-05-07: Fix Publish.ps1 string interpolation on GUID error message
+- 2026-05-07: Initial Release

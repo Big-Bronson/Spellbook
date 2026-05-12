@@ -1,31 +1,24 @@
-## Public\get-groupmembers.ps1
+## Public/get-groupmembers.ps1
 
 ### What This File Does
-This script audits the membership of a Microsoft 365 group by querying the Microsoft Graph API, resolving each member object to a user display name and UPN, and optionally exporting the roster to a timestamped CSV file on the engineer's desktop. It's a targeted investigation tool for helpdesk staff who need to answer "who is actually in this distribution list or security group?" without navigating the M365 admin portal.
+This is an interactive audit script that connects to Microsoft Graph, prompts a user for a group name, retrieves all members of that group, and displays them in a formatted table with the option to export to CSV. It's a standalone tool for administrators to quickly inspect group membership across distribution lists, security groups, and M365 groups.
 
 ### Why It Exists
-Distribution lists and security groups accumulate members over months or years, and the admin portal doesn't give a quick, exportable snapshot. When an MSP engineer inherits a customer tenant or responds to "we think John still has access to X," they need to rapidly enumerate group membership, spot non-user objects (like service accounts or nested groups), and document findings. This script eliminates the portal clicks and provides an auditible export.
+Group membership auditing is a common administrative task, but querying Microsoft Graph directly requires authentication setup and API knowledge. This script wraps that complexity into a user-friendly interactive experience that handles authentication automatically on first run and provides formatted output suitable for compliance reviews and exports.
 
 ### What It Protects Against
-**Non-user group members:** The script encounters resources that are group members but are not user objects (service principals, mail contacts, or nested groups). Rather than crashing on the `Get-MgUser` lookup, a try-catch wrapper falls back to displaying the object ID and marking it "(non-user object)" so the engineer knows something unusual is in the group and can investigate further.
-
-**Ambiguous group names:** If the user types a group name that matches multiple M365 groups, the script rejects the operation and asks for specificity, preventing silent enumeration of the wrong group.
-
-**Uninitialized Graph context:** If the engineer hasn't authenticated to Graph in the current session, the script automatically connects with the necessary scopes rather than failing cryptically.
-
-**Unsafe filenames:** When exporting to CSV, the script sanitizes the group display name by replacing Windows-illegal characters (`\/:*?"<>|`) with underscores, preventing file-write failures on names like "IT / Security (Prod)".
-
-**Script termination in a dot-sourced context:** The original code used `exit`, which would terminate the engineer's entire PowerShell session if the script was dot-sourced by the toolkit. The May 8 fix changed this to `return`, which exits only the script.
+The script defends against several failure modes: it handles cases where a group doesn't exist or multiple groups match the same name by exiting early with user feedback. It catches exceptions when trying to resolve members that aren't user objects (like service principals or mail contacts) and displays them gracefully rather than crashing. It sanitizes the group name before using it in a filename to prevent path injection attacks or filesystem errors when exporting to CSV.
 
 ### Invariants
-- The Microsoft Graph PowerShell SDK (`Microsoft.Graph.*` modules) must be installed.
-- The authenticated user or service principal must hold `Group.Read.All` and `User.Read.All` permissions.
-- The group display name must be an exact, case-sensitive match (the script does not perform fuzzy or substring matching).
-- The engineer's desktop directory must be writable if CSV export is selected.
+- Microsoft Graph context must be established (either pre-existing or created on first run)
+- User input for group name must match a display name exactly
+- At most one group must match the provided display name
+- The Microsoft Graph PowerShell SDK must be installed
+- The user running the script must have Group.Read.All and User.Read.All permissions in their tenant
 
-### Evolution Notes
-The script was introduced as-is in the initial release (May 7) and remained functionally stable. The only change (May 8) was a portability fix that replaced `exit` with `return` on two error paths. This fix was not a logic correction but a session-safety improvement—the original code worked locally but broke the MSP toolkit's dot-sourcing pattern, which invokes all public scripts in the current session scope. Once changed to `return`, the script became safely nestable and prevented accidental user session termination.
+### Key Patterns
+**Early exit on validation failure**: The script uses immediate returns when group lookup fails, preventing downstream code from executing against invalid state. **Graceful degradation**: When a member object cannot be resolved as a user, the script captures the exception and displays the raw ID with a "(non-user object)" label rather than failing entirely. **Safe filename construction**: Group names are sanitized by replacing filesystem-illegal characters before being used in export paths.
 
 ### Change Log
-- 2026-05-08: Replace `exit` with `return` to prevent terminating the PowerShell session when invoked as a dot-sourced script within the toolkit.
-- 2026-05-07: Initial release.
+- 2026-05-08: Fix script portability and password handling
+- 2026-05-07: Initial Release

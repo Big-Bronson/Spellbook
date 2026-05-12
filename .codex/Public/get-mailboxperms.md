@@ -1,36 +1,28 @@
-## Public\get-mailboxperms.ps1
+## Public/get-mailboxperms.ps1
 
 ### What This File Does
-
-This script audits delegated mailbox access for a single target mailbox, displaying both Full Access and Send As permissions while automatically filtering out system-generated ACEs that clutter the output. An MSP engineer runs it when a customer asks "who can access this mailbox?" and needs a quick, human-readable answer without wading through NT AUTHORITY noise.
+This is an interactive diagnostic script that audits delegated access to a single Exchange Online mailbox. It queries two permission layers—FullAccess (via `Get-MailboxPermission`) and SendAs (via `Get-RecipientPermission`)—filters out system noise, and displays the results in a human-readable format. It's designed as a point-in-time lookup tool, not a bulk reporting mechanism.
 
 ### Why It Exists
-
-Exchange Online's native `Get-MailboxPermission` and `Get-RecipientPermission` cmdlets return raw ACL data that includes dozens of inherited system entries (NT AUTHORITY\SELF, S-1-5 SIDs, etc.) that obscure the actual delegated access an MSP cares about. The engineer was manually filtering these every time or copy-pasting the same Where-Object blocks across tickets. This script encapsulates that repeated filtering logic, validates the mailbox exists upfront, and presents results in a clean, color-coded format that fits into a helpdesk workflow.
+Exchange Online mailbox permissions are commonly delegated but hard to audit quickly. An administrator needs to answer "who can access this mailbox?" without wading through system accounts, SIDs, and inherited permissions. This script provides a fast, clean answer by prompting for a single mailbox identity and surfacing only the meaningful delegates.
 
 ### What It Protects Against
-
-**Non-existent mailbox lookup:** The script wraps the initial `Get-Mailbox` call in try-catch and exits gracefully with a red error message rather than letting an invalid identity cascade through to subsequent permission queries.
-
-**System ACE noise:** Filters explicitly on `NT AUTHORITY*` and `S-1-5*` patterns to hide inherited system permissions that would otherwise dominate the output and make real delegations invisible.
-
-**Deny ACEs in Full Access:** The Full Access filter includes `-not $_.Deny`, preventing the script from flagging explicit deny permissions as positive grants—a subtle but important distinction when auditing.
-
-**Missing Exchange Online connection:** Checks for an active connection at the start and connects automatically if needed, avoiding the silent failure where cmdlets fail without warning.
-
-**Partial permission retrieval:** Both Full Access and Send As queries are wrapped in separate try-catch blocks so that if one permission type fails to retrieve, the other still displays.
+The script defends against noisy, unactionable results by filtering two categories of system noise: NT AUTHORITY accounts (built-in Windows principals) and S-1-5 SID prefixes (orphaned or system-generated SIDs). Without these filters, the output would be cluttered with inherited permissions that operators cannot and should not modify. It also gates execution behind an Exchange Online connection check, preventing failures if the module is not loaded.
 
 ### Invariants
+- Exchange Online PowerShell module must be available and connectable (or already connected).
+- The supplied mailbox identity must resolve to exactly one mailbox via `Get-Mailbox`.
+- FullAccess permission records must have a `User` property; SendAs records must have a `Trustee` property.
+- The script assumes `Get-MailboxPermission` and `Get-RecipientPermission` will not raise fatal errors (caught and logged instead).
 
-- Exchange Online PowerShell must be available and connectable (or already connected).
-- The user input must resolve to a valid mailbox via `Get-Mailbox -Identity`.
-- The mailbox's primary SMTP address must be accessible and queryable via `Get-MailboxPermission` and `Get-RecipientPermission`.
-- The tenant must have either no delegated permissions or permissions assigned to named principals (users/groups), not purely system SIDs.
+### Key Patterns
+**Interactive CLI input**: The script uses `Read-Host` to prompt for a mailbox identity rather than accepting pipeline or parameter input. This is a deliberate choice for single-lookup workflows.
 
-### Evolution Notes
+**Dual permission-type reporting**: The script treats FullAccess and SendAs as separate concerns, each with its own query, filter, and output block. This separation mirrors how Exchange manages these permissions under the hood.
 
-This file was introduced in a single commit as part of a three-script permissions family (alongside `get-userperms` and `add-mailboxperms`) and has not been changed since. It arrived feature-complete with its current filtering logic, error handling, and output formatting.
+**Noise filtering by pattern match**: Rather than maintaining a hardcoded list of system principals, the script uses wildcard patterns (`-notlike`) to exclude broad categories of system noise.
+
+**Try-catch per operation**: Each permission query is wrapped independently, so a failure in one section (e.g., SendAs query) doesn't prevent the other (e.g., FullAccess) from displaying.
 
 ### Change Log
-
-- 2026-05-08: Initial commit—added mailbox permissions family with Full Access and Send As auditing and automatic system ACE filtering.
+- 2026-05-08: Initial commit adding mailbox permissions family (get-mailboxperms, get-userperms, add-mailboxperms); shows FullAccess and SendAs delegates with NT AUTHORITY/S-1-5 filtering.

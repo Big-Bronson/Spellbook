@@ -1,22 +1,22 @@
-## Public\kill-graph.ps1
+## Public/kill-graph.ps1
 
 ### What This File Does
-This script cleanly terminates the current Microsoft Graph PowerShell session by disconnecting the authentication context. When run, it invalidates the locally-cached access token and reports the disconnection status to the operator — or gracefully no-ops if no session exists.
+Cleanly disconnects the current PowerShell session from Microsoft Graph and reports the outcome to the operator. It is a utility command that sits alongside other Microsoft Graph-dependent scripts and handles the session lifecycle reset that those scripts require.
 
 ### Why It Exists
-Many scripts in the Spellbook module call `Connect-MgGraph` with minimal, script-specific permission scopes (per ADR-0003). Once a Graph session is established, the token persists for the entire PowerShell session — the Graph SDK will not re-consent or add additional scopes on a second `Connect-MgGraph` call, even with a broader `-Scopes` list. Engineers need a way to explicitly reset when they (a) need to request additional permissions after an initial narrow connection, (b) are switching between tenants, or (c) are closing out a session and want to invalidate the token. `kill-graph` provides that reset valve without requiring them to close and reopen their PowerShell terminal.
+Microsoft Graph PowerShell maintains a persistent session token for the life of the PowerShell process. Once `Connect-MgGraph` runs with a specific scope list, that token is reused on all subsequent Graph calls—even if a different script later calls `Connect-MgGraph` with a broader scope request. Engineers need a way to explicitly tear down that session when they need to re-authenticate with different scopes, switch tenants, or invalidate the token at session end. This script provides that reset mechanism.
 
 ### What It Protects Against
-The original two-line implementation unconditionally called `Disconnect-MgGraph`, which throws a terminating error — `"There is no active Microsoft Graph session"` — when no context exists. This error surfaced as a red wall of exception text to the operator, creating confusion: the desired end state is "no active session," yet the script was screaming that as a failure. The current code guards against this by explicitly checking `Get-MgContext` first and printing a friendly informational message instead. It also wraps the disconnect itself in a try/catch to prevent transient network or SDK errors during token revocation from surfacing as raw exception traces.
+The original two-line implementation called `Disconnect-MgGraph` unconditionally, which threw a terminating error when no active session existed ("There is no active Microsoft Graph session"). This error surfaced as a confusing red exception trace to the operator, even though the desired end state (no active session) was already achieved. This version guards against that by checking `Get-MgContext` first and returning early with a friendly message if no session is present. It also wraps the disconnect in try/catch to catch transient network or SDK errors during token revocation and surface them as normal (non-exception) output.
 
 ### Invariants
-- `Microsoft.Graph.Authentication` module must be installed (provides `Get-MgContext` and `Disconnect-MgGraph`).
-- If a Graph context exists, it must have at least one of `TenantId`, `Account`, or some sentinel field; the script gracefully degrades to "active session" if both are unexpectedly null.
-- The script is dot-sourced (not run in a child process), so `return` correctly exits only the script, not the operator's entire PowerShell session.
+- `Microsoft.Graph.Authentication` module must be loaded for `Get-MgContext` and `Disconnect-MgGraph` to be available.
+- Execution must use `return` rather than `exit` to avoid terminating the operator's entire PowerShell session when invoked as a dot-sourced script (per ADR-0016).
+- The function is idempotent: calling it when no session exists is a no-op with informational output, not an error.
 
-### Evolution Notes
-This script was introduced in a single commit as a minimal two-liner and has evolved significantly in the subsequent release. The original implementation was defensive-guard-free and would crash on a no-op case. Between the initial commit (2026-05-08) and the 1.1.0 release (2026-05-11), the script was rewritten to (a) check for an active context before attempting disconnect, (b) capture the tenant or account identifier for a meaningful disconnect message, (c) wrap the disconnect in error handling, and (d) use explicit `return` per ADR-0016 to prevent accidental session termination. This evolution was driven by real-world operator feedback (documented in ADR-0020) and represents the module's maturing defensive posture around error messages and edge cases.
+### Key Patterns
+**Defensive guards**: The script checks state (`Get-MgContext`) before taking action rather than letting the downstream cmdlet throw. **Contextual messaging**: The disconnect message includes the tenant ID, account, or a generic phrase depending on what context fields are populated. **Exception wrapping**: The actual `Disconnect-MgGraph` call is wrapped in try/catch to convert SDK errors into user-friendly red text instead of raw exception traces. **Null-safe output suppression**: Pipe to `Out-Null` to prevent cmdlet output from cluttering the operator's terminal.
 
 ### Change Log
-- 2026-05-11: Defensive cleanup — added context check, friendlier no-op message, error handling around disconnect, and tenant/account identifier in success message (ADR-0020).
-- 2026-05-08: Initial commit — minimal two-line `Disconnect-MgGraph` wrapper with green success message.
+- 2026-05-11: Release 1.1.0: V2 mailflow, expanded RequiredModules, audit-log integrity
+- 2026-05-08: feat: add kill-graph; add Pester smoke tests (#5)
