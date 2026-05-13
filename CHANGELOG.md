@@ -7,6 +7,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+---
+
+## [1.3.0] — 2026-05-13
+
 ### Added
 - `get-conditionalaccess` — Retrieves all Conditional Access policies with state (enabled/disabled/report-only), user and group targets, app targets, and grant controls (MFA required, compliant device, etc.). Auto-exports to CSV. Requires `Policy.Read.All`.
 - `get-licencegaps` — Licence cost audit: finds users with licences assigned but no interactive sign-in within a configurable threshold (default 90 days). Uses `signInActivity.lastSignInDateTime` from the Graph Users endpoint rather than mailbox activity, which avoids false positives from received mail. Never-signed-in users sort to the top. Auto-exports to CSV. Requires `User.Read.All`, `AuditLog.Read.All`.
