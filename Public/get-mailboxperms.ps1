@@ -25,7 +25,7 @@ try {
         Where-Object {
             $_.User -notlike "NT AUTHORITY*" -and
             $_.User -notlike "S-1-5*" -and
-            $_.AccessRights -contains "FullAccess" -and
+            ($_.AccessRights -join " ") -like "*FullAccess*" -and
             -not $_.Deny
         }
     if ($fullAccess) {
