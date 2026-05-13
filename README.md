@@ -7,10 +7,28 @@
 
 ## Install
 
+> **Use `Install-PSResource`, not `Install-Module`.** `Install-Module` is from the legacy PowerShellGet v2 stack and hits NuGet provider locking issues on Windows even after a session restart. `Install-PSResource` is the modern replacement and works cleanly on PS 7.
+
 ### From PowerShell Gallery (recommended)
 
+**First-time install:**
+
 ```powershell
-Install-Module Spellbook -Scope CurrentUser
+Install-PSResource -Name Spellbook
+```
+
+**Updating to a newer version:**
+
+```powershell
+Install-PSResource -Name Spellbook -Reinstall -SkipDependencyCheck
+```
+
+`-SkipDependencyCheck` is required when updating. Without it, `Install-PSResource` tries to reinstall the dependencies (ExchangeOnlineManagement, Microsoft.Graph.*) alongside the module. If any of those are already loaded in your session — which they will be if you've run any Spellbook commands — PowerShell can't overwrite them and the install fails. The dependencies don't change between Spellbook releases, so skipping them is safe.
+
+**Uninstall:**
+
+```powershell
+Uninstall-PSResource -Name Spellbook
 ```
 
 Import it in your session (or add to your `$PROFILE` to auto-load):
