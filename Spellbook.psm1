@@ -52,9 +52,12 @@ function global:invoke {
         "get-mfaaudit"           = "All users and their MFA registration status"
         "get-guestaudit"         = "Guest accounts with invite status and age"
         "get-signinlogs"         = "Recent sign-in events for a user"
+        "get-licencegaps"        = "Licensed users with no recent sign-in — cost-saving audit"
 
         # Tenant Health
         "get-tenantreport"       = "Full tenant health snapshot"
+        "get-conditionalaccess"  = "All Conditional Access policies — state, targets, grant controls"
+        "get-devicereport"       = "Intune managed devices — compliance, sync status, flagged issues"
 
         # Mailbox & Exchange
         "check-mailflow"         = "Trace message delivery for a sender/recipient"
@@ -65,6 +68,7 @@ function global:invoke {
         "get-userperms"          = "Which mailboxes a user has delegated access to"
         "add-mailboxperms"       = "Grant Full Access and/or Send As to a mailbox"
         "disable-autocalevents"  = "Disable automatic calendar events tenant-wide"
+        "new-sharedmailbox"      = "Create a shared mailbox and assign delegates"
 
         # Groups
         "get-groupmembers"       = "List all members of a group"

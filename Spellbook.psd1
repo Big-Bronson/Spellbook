@@ -7,7 +7,7 @@
 @{
     # Module identity
     RootModule        = 'Spellbook.psm1'
-    ModuleVersion     = '1.2.0'
+    ModuleVersion     = '1.3.0'
     GUID              = '31541981-5235-4afe-bf0d-19c7b5fb438c'
     Author            = 'Stephen Vella'
     CompanyName       = 'stephenvella.work'
@@ -45,6 +45,10 @@
         'add-tap'
         'remove-taps'
         'inherit-permissions'
+        'get-conditionalaccess'
+        'get-licencegaps'
+        'new-sharedmailbox'
+        'get-devicereport'
     )
 
     CmdletsToExport   = @()
@@ -107,6 +111,11 @@
         # .Reports in the 2.x SDK; if a future SDK move splits ServiceAnnouncement
         # out (it has been in Beta historically), update this entry and ADR-0022.
         @{ ModuleName = 'Microsoft.Graph.Reports';                   ModuleVersion = '2.0.0' }
+
+        # Get-MgDeviceManagementManagedDevice (get-devicereport). Intune device
+        # management cmdlets live in their own submodule; not covered by any of
+        # the above entries.
+        @{ ModuleName = 'Microsoft.Graph.DeviceManagement';          ModuleVersion = '2.0.0' }
     )
 
     # PS Gallery metadata (shown on the module page)

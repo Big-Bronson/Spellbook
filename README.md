@@ -61,17 +61,21 @@ invoke 3                 # run a command by number
 | `invoke get-mfaaudit` | All users and their MFA registration status |
 | `invoke get-guestaudit` | Guest accounts with invite status and age |
 | `invoke get-signinlogs` | Recent sign-in events for a user |
+| `invoke get-licencegaps` | Licensed users with no recent sign-in — cost-saving audit |
 
 ### Tenant Health
 
 | Command | Description |
 |---|---|
 | `invoke get-tenantreport` | Full tenant snapshot — licences, MFA gaps, admin roles, sync status, service health |
+| `invoke get-conditionalaccess` | All Conditional Access policies — state, user/group targets, app targets, grant controls |
+| `invoke get-devicereport` | Intune managed devices — compliance state, sync status, flags stale and non-compliant |
 
 ### Mailbox & Exchange
 
 | Command | Description |
 |---|---|
+| `invoke new-sharedmailbox` | Create a shared mailbox and optionally assign Full Access and Send As delegates |
 | `invoke check-mailflow` | Trace message delivery for a sender/recipient pair |
 | `invoke get-sharedmailboxaudit` | Shared mailboxes with delegates, size, licence status |
 | `invoke set-forwarding` | Enable SMTP forwarding on a mailbox |
@@ -148,7 +152,9 @@ Each script connects itself and prompts for auth. The Graph scopes required vary
 | `Organization.Read.All` | disable-autocalevents, get-tenantreport |
 | `RoleManagement.Read.Directory` | get-tenantreport |
 | `RoleManagement.ReadWrite.Directory` | offboard-user |
-| `AuditLog.Read.All` | get-signinlogs |
+| `AuditLog.Read.All` | get-signinlogs, get-licencegaps |
+| `Policy.Read.All` | get-conditionalaccess |
+| `DeviceManagementManagedDevices.Read.All` | get-devicereport |
 | `ServiceHealth.Read.All` | get-tenantreport |
 | Exchange Online | all mailbox/Exchange commands |
 

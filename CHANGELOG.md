@@ -7,6 +7,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Added
+- `get-conditionalaccess` — Retrieves all Conditional Access policies with state (enabled/disabled/report-only), user and group targets, app targets, and grant controls (MFA required, compliant device, etc.). Auto-exports to CSV. Requires `Policy.Read.All`.
+- `get-licencegaps` — Licence cost audit: finds users with licences assigned but no interactive sign-in within a configurable threshold (default 90 days). Uses `signInActivity.lastSignInDateTime` from the Graph Users endpoint rather than mailbox activity, which avoids false positives from received mail. Never-signed-in users sort to the top. Auto-exports to CSV. Requires `User.Read.All`, `AuditLog.Read.All`.
+- `new-sharedmailbox` — Creates a shared mailbox via Exchange Online, then optionally loops through delegate UPNs to grant Full Access and Send As. Follows the same prompt-then-confirm flow as `new-user`.
+- `get-devicereport` — Pulls all Intune-managed devices with OS, compliance state, management state, and last sync date. Flags devices not synced in 30+ days and non-compliant devices (suppresses `unknown` compliance as non-actionable). Flagged devices sort to the top of the output. Auto-exports to CSV. Requires `DeviceManagementManagedDevices.Read.All`.
+
+### Changed
+- `Spellbook.psd1` — `ModuleVersion` bumped to `1.3.0`.
+- `Spellbook.psd1` — `RequiredModules` expanded with `Microsoft.Graph.DeviceManagement` (needed by `get-devicereport`).
+
 ---
 
 ## [1.2.0] — 2026-05-13

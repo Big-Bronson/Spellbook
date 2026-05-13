@@ -52,9 +52,12 @@ function invoke {
         "get-mfaaudit"          = "All users and their MFA registration status"
         "get-guestaudit"        = "Guest accounts with invite status and age"
         "get-signinlogs"        = "Recent sign-in events for a user"
+        "get-licencegaps"       = "Licensed users with no recent sign-in — cost-saving audit"
 
         # --- Tenant Health ---
         "get-tenantreport"      = "Full tenant health snapshot — licences, MFA, roles, sync, service health"
+        "get-conditionalaccess" = "All Conditional Access policies — state, targets, grant controls"
+        "get-devicereport"      = "Intune managed devices — compliance, sync status, flagged issues"
 
         # --- Mailbox & Exchange ---
         "get-userperms"         = "List all mailboxes a user has access to"
@@ -63,6 +66,7 @@ function invoke {
         "set-forwarding"        = "Enable email forwarding from a mailbox"
         "remove-forwarding"     = "Remove email forwarding from a mailbox"
         "disable-autocalevents" = "Disable automatic calendar events tenant-wide"
+        "new-sharedmailbox"     = "Create a shared mailbox and assign delegates"
         "check-mailflow"        = "Trace message delivery for a sender/recipient pair"
         "get-sharedmailboxaudit"= "All shared mailboxes with delegates, size, and licence status"
 
