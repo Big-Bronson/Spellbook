@@ -166,7 +166,7 @@ Each script connects itself and prompts for auth. The Graph scopes required vary
 | Scope | Used by |
 |---|---|
 | `User.ReadWrite.All` | new-user, offboard-user, set-userlicence |
-| `User.Read.All` | get-allusers, get-guestaudit, get-groupmembers, get-inactiveusers, get-mfaaudit, get-sharedmailboxaudit, get-tenantreport, get-userreport |
+| `User.Read.All` | add-tap, get-allusers, get-guestaudit, get-groupmembers, get-inactiveusers, get-mfaaudit, get-sharedmailboxaudit, get-tenantreport, get-userreport |
 | `Directory.ReadWrite.All` | offboard-user, set-userlicence |
 | `Directory.Read.All` | get-allusers, get-guestaudit, get-inactiveusers, get-signinlogs, get-tenantreport, get-userreport, new-user |
 | `Group.ReadWrite.All` | new-user |

@@ -7,6 +7,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Fixed
+- `add-tap` — added missing `User.Read.All` scope to `Connect-MgGraph` call. The script calls `Get-MgUser` to resolve the UPN, which requires this scope; without it the lookup silently returned nothing and the TAP creation failed.
+
 ---
 
 ## [1.5.0] — 2026-05-19
