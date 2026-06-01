@@ -43,6 +43,7 @@ function global:invoke {
         # User Lifecycle
         "new-user"               = "Create a new M365 user and assign groups"
         "offboard-user"          = "Full offboarding — block, wipe, convert, log"
+        "reset-password"         = "Reset a user's password — auto-generate or set manually"
         "set-userlicence"        = "Assign or remove a licence from a user"
 
         # User Reports & Auditing
@@ -71,6 +72,7 @@ function global:invoke {
         "set-mailboxperms"       = "Grant Full Access and/or Send As to a mailbox"
         "get-maxmessagesize"      = "Show MaxSendSize and MaxReceiveSize for a mailbox"
         "set-maxmessagesize"      = "Set MaxSendSize and MaxReceiveSize on mailboxes"
+        "set-autoexpand"          = "Enable auto-expanding archive on a mailbox"
         "get-inplaceretention"    = "List all MRM retention policies and their tags"
         "add-inplaceretention"    = "Create an archive retention policy cloned from Default MRM Policy"
         "get-userinplace"         = "Show the MRM retention policy assigned to a mailbox"

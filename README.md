@@ -73,6 +73,7 @@ inv newuser
 |---|---|
 | `invoke new-user` | Create a new M365 user and assign groups |
 | `invoke offboard-user` | Full offboarding — block, wipe, convert mailbox, export log |
+| `invoke reset-password` | Reset a user's password — auto-generate or set manually; optional force-change on next login |
 | `invoke set-userlicence` | Assign or remove a licence from a user |
 
 ### User Reports & Auditing
@@ -101,6 +102,7 @@ inv newuser
 |---|---|
 | `invoke new-sharedmailbox` | Create a shared mailbox and optionally assign Full Access and Send As delegates |
 | `invoke get-archive` | In-place archive size, item count, and quota for a mailbox |
+| `invoke set-autoexpand` | Enable auto-expanding archive on a mailbox (one-way — cannot be undone) |
 | `invoke get-mailflow` | Trace message delivery for a sender/recipient pair |
 | `invoke get-sharedmailboxaudit` | Shared mailboxes with delegates, size, licence status |
 | `invoke get-forwarding` | Show forwarding configuration on a mailbox |
@@ -149,8 +151,7 @@ inv newuser
 
 Tracked in the issue tracker; not yet shipped:
 
-- User Lifecycle: `reset-password`
-- Mailbox & Exchange: `enable-autoexpand`
+- nothing currently planned
 
 
 ---

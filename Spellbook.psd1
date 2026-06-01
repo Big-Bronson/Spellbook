@@ -7,7 +7,7 @@
 @{
     # Module identity
     RootModule        = 'Spellbook.psm1'
-    ModuleVersion     = '1.6.5'
+    ModuleVersion     = '1.6.6'
     GUID              = '31541981-5235-4afe-bf0d-19c7b5fb438c'
     Author            = 'Stephen Vella'
     CompanyName       = 'stephenvella.work'
@@ -21,6 +21,7 @@
         'invoke'
         'new-user'
         'offboard-user'
+        'reset-password'
         'set-userlicence'
         'get-userreport'
         'get-allusers'
@@ -40,6 +41,7 @@
         'set-mailboxperms'
         'get-maxmessagesize'
         'set-maxmessagesize'
+        'set-autoexpand'
         'get-inplaceretention'
         'add-inplaceretention'
         'get-userinplace'
@@ -135,7 +137,7 @@
             Tags         = @('M365', 'Microsoft365', 'Exchange', 'Helpdesk', 'MSP', 'Entra', 'PowerShell', 'Toolkit', 'MFA', 'Offboarding', 'Onboarding')
             LicenseUri   = 'https://github.com/Big-Bronson/Spellbook/blob/main/LICENSE'
             ProjectUri   = 'https://github.com/Big-Bronson/Spellbook'
-            ReleaseNotes = '1.6.5 — Added: get-inplaceretention, add-inplaceretention, get-userinplace, set-userinplace — MRM retention policy management for in-place archive.'
+            ReleaseNotes = '1.6.6 — Added: reset-password (auto-generate or manual, optional force-change); set-autoexpand (enable auto-expanding archive).'
         }
     }
 }
