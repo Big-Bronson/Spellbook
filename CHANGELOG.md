@@ -9,6 +9,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## [1.6.6] — 2026-06-02
+
+### Added
+- `reset-password` — reset a user's password; auto-generates a secure 20-character password by default (press Enter twice for a permanent auto-generated password), or lets the engineer set one manually; optional force-change on next login (default off).
+- `set-autoexpand` — enable auto-expanding archive on a mailbox; guards against running on mailboxes with no archive or where auto-expand is already on; warns that the change is irreversible before applying.
+
+---
+
 ## [1.6.5] — 2026-06-01
 
 ### Added
