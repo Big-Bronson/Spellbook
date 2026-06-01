@@ -41,8 +41,11 @@ Import-Module Spellbook
 
 ### From GitHub (clone and install)
 
+Get git if you dont got git
+`winget install git.git`
+Restart your terminal
+
 ```powershell
-winget install git.git
 git clone https://github.com/Big-Bronson/Spellbook.git
 cd Spellbook
 .\Install.ps1
