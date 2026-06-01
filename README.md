@@ -58,7 +58,11 @@ invoke                   # list all commands
 invoke new-user          # run a command by name
 invoke 3                 # run a command by number
 ```
+Commands can be sortened to 'inv' and ran without dashes
 
+```powershell
+inv newuser
+```
 ---
 
 ## Commands
