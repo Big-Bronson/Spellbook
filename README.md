@@ -62,10 +62,12 @@ invoke                   # list all commands
 invoke new-user          # run a command by name
 invoke 3                 # run a command by number
 ```
-Commands can be sortened to 'inv' and ran without dashes
+Commands can be shortened to 'inv' and ran without dashes
 
 ```powershell
-inv newuser
+inv                      # list all commands
+inv new-user             # run a command by name
+inv    3                 # run a command by number
 ```
 ---
 
