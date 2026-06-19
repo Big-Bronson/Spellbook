@@ -1,4 +1,4 @@
-# add-mailboxperms.ps1
+# set-mailboxperms.ps1
 # Grants delegated mailbox access (Full Access and/or Send As) to a user.
 # Requires: Exchange Online
 

@@ -1,4 +1,4 @@
-# check-mailflow.ps1
+# get-mailflow.ps1
 # -----------------------------------------------------------------------------
 # Traces message delivery for a sender/recipient pair within a date range.
 # Useful for: "I didn't receive an email from X", "my email to Y bounced",
