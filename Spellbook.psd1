@@ -7,7 +7,7 @@
 @{
     # Module identity
     RootModule        = 'Spellbook.psm1'
-    ModuleVersion     = '1.6.6'
+    ModuleVersion     = '1.6.7'
     GUID              = '31541981-5235-4afe-bf0d-19c7b5fb438c'
     Author            = 'Stephen Vella'
     CompanyName       = 'stephenvella.work'
@@ -137,7 +137,7 @@
             Tags         = @('M365', 'Microsoft365', 'Exchange', 'Helpdesk', 'MSP', 'Entra', 'PowerShell', 'Toolkit', 'MFA', 'Offboarding', 'Onboarding')
             LicenseUri   = 'https://github.com/Big-Bronson/Spellbook/blob/main/LICENSE'
             ProjectUri   = 'https://github.com/Big-Bronson/Spellbook'
-            ReleaseNotes = '1.6.6 — Added: reset-password (auto-generate or manual, optional force-change); set-autoexpand (enable auto-expanding archive).'
+            ReleaseNotes = '1.6.7 — Fixed: reset-password no longer echoes an engineer-supplied password to the console; corrected stale file-header comments in get-mailflow and set-mailboxperms.'
         }
     }
 }

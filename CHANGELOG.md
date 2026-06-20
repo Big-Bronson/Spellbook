@@ -7,6 +7,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Fixed
+- `reset-password` — stopped echoing an engineer-supplied password back to the console; manually-set passwords now use the same SecureString-prompt pattern as `new-user.ps1` and are never displayed. Auto-generated passwords are unaffected (still shown once, since the engineer doesn't know the value and has to relay it). Also renamed the password variable away from `$pwd`, which was shadowing the automatic `$PWD` variable.
+- `get-mailflow` / `set-mailboxperms` — corrected stale file-header comments left over from prior renames (`check-mailflow.ps1` and `add-mailboxperms.ps1`).
+
+---
+
+## [1.6.7] — 2026-06-20
+
+### Fixed
+- `reset-password` — stopped echoing an engineer-supplied password back to the console; manually-set passwords now use the same SecureString-prompt pattern as `new-user.ps1` and are never displayed. Auto-generated passwords are unaffected (still shown once, since the engineer doesn't know the value and has to relay it). Also renamed the password variable away from `$pwd`, which was shadowing the automatic `$PWD` variable.
+- `get-mailflow` / `set-mailboxperms` — corrected stale file-header comments left over from prior renames (`check-mailflow.ps1` and `add-mailboxperms.ps1`).
+
 ---
 
 ## [1.6.6] — 2026-06-02
